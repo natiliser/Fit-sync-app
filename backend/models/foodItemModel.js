@@ -27,7 +27,7 @@ const FoodItemSchema = new mongoose.Schema({
         min: 0
     },
     // Fats amount in grams
-    fats: {
+    fat: {
         type: Number,
         required: [true, 'Please provide fats amount'],
         min: 0

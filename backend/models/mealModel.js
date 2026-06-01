@@ -1,25 +1,25 @@
 const mongoose = require('mongoose');
 
 const MealSchema = new mongoose.Schema({
-    // The user who logged the meal (Links to the User collection)
+    // The user who logged the meal
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
-    // The specific food item selected from the database (Links to the FoodItem collection)
+    // Optional link to the DB item (good for future analytics)
     foodItem: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'FoodItem',
-        // Optional, because the user might enter a manual item instead
         required: false 
     },
-    // Allows the user to type a food name manually if it's not in the DB
-    manualFoodName: {
+    // Unified name field 
+    name: {
         type: String,
+        required: true,
         trim: true
     },
-    // Type of meal 
+    // Type of meal
     mealType: {
         type: String,
         enum: ['Breakfast', 'Lunch', 'Dinner', 'Snack'],
@@ -29,30 +29,14 @@ const MealSchema = new mongoose.Schema({
     quantity: {
         type: Number,
         required: [true, 'Please provide the quantity'],
-        // Prevents users from entering 0 or negative numbers, as required by SUC-6
         min: [1, 'Quantity must be greater than 0']
     },
-    // Calculated nutritional values for this specific portion (Quantity * Base Values)
-    totalCalories: {
-        type: Number,
-        required: true,
-        min: 0
-    },
-    totalProtein: { 
-        type: Number, 
-        default: 0,
-        min: 0 
-    },
-    totalCarbs: { 
-        type: Number, 
-        default: 0,
-        min: 0 
-    },
-    totalFats: { 
-        type: Number, 
-        default: 0,
-        min: 0 
-    },
+    // Nutritional values 
+    calories: { type: Number, required: true, min: 0 },
+    protein: { type: Number, default: 0, min: 0 },
+    carbs: { type: Number, default: 0, min: 0 },
+    fat: { type: Number, default: 0, min: 0 },
+    
     // The date the meal was consumed
     date: {
         type: Date,

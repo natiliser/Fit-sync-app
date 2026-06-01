@@ -4,9 +4,10 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import Home from './pages/Home'
 import ProfileSetup from './pages/ProfileSetup';
+import MealsDiary from './pages/MealsDiary';
 
 function App() {
-  // Replace with your actual Google Client ID
+
   const clientId = "530621194804-4a7cn9ra0q1bu3bko8kcevj8h300qtnv.apps.googleusercontent.com"; 
 
   return (
@@ -19,6 +20,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/home" element={<Home />} />
             <Route path="/profile-setup" element={<ProfileSetup />} />
+            <Route path="/meals-diary" element={<MealsDiary />} />
           </Routes>
         </div>
       </Router>
