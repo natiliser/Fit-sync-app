@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { createWorkout, getAllWorkouts } = require('../controllers/workoutController');
+const { addWorkout, getWorkoutsHistory } = require('../controllers/workoutController');
+const authMiddleware = require('../middleware/auth');
 
-// Define routes for /workouts
-router.route('/')
-    .post(createWorkout)
-    .get(getAllWorkouts);
+
+router.post('/', authMiddleware, addWorkout);
+router.get('/', authMiddleware, getWorkoutsHistory);
 
 module.exports = router;

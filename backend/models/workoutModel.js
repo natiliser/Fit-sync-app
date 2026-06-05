@@ -1,26 +1,32 @@
-const Workout = require('../models/workoutModel');
+const mongoose = require('mongoose');
 
-// Log a new workout for a user
-const createWorkout = async (req, res) => {
-    try {
-        const workout = await Workout.create(req.body);
-        res.status(201).json({ msg: "Workout logged successfully", workout });
-    } catch (error) {
-        res.status(400).json({ msg: error.message });
+const workoutSchema = new mongoose.Schema({
+    user: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User', 
+        required: true 
+    },
+    date: { 
+        type: Date, 
+        default: Date.now 
+    },
+    duration: { 
+        type: Number, 
+        required: true,
+        min: [1, 'Duration must be at least 1 minute'] 
+    },
+    workoutType: { 
+        type: String, 
+        enum: ['Strength', 'Running', 'Walking', 'Yoga', 'Mixed'], 
+        required: true 
+    },
+    caloriesBurned: { 
+        type: Number,
+        min: 0
+    },
+    notes: { 
+        type: String 
     }
-};
+}, { timestamps: true });
 
-// Get all workouts (Later we will filter this by specific user ID)
-const getAllWorkouts = async (req, res) => {
-    try {
-        const workouts = await Workout.find({});
-        res.status(200).json({ workouts });
-    } catch (error) {
-        res.status(500).json({ msg: error.message });
-    }
-};
-
-module.exports = {
-    createWorkout,
-    getAllWorkouts
-};
+module.exports = mongoose.model('Workout', workoutSchema);

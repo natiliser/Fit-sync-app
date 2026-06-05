@@ -10,6 +10,7 @@ const foodItemRoutes = require('./routes/foodItemRoutes');
 const workoutRoutes = require('./routes/workoutRoutes');   
 const recipeRoutes = require('./routes/recipeRoutes');
 const mealRoutes = require('./routes/mealRoutes');
+const measurementRoutes = require('./routes/measurementRoutes');
 
 const app = express();
 
@@ -30,10 +31,13 @@ app.use('/food-items', foodItemRoutes);
 app.use('/workouts', workoutRoutes); 
 app.use('/recipes', recipeRoutes);
 app.use('/meals', mealRoutes);
+app.use('/measurements', measurementRoutes)
+app.use('/workouts', require('./routes/workoutRoutes'));
 
-app.get('/', (req, res) => {
-    res.send("<h2>FitSync Server is Running!</h2>");
-});
+
+// app.get('/', (req, res) => {
+//     res.send("<h2>FitSync Server is Running!</h2>");
+// });
 
 const start = async () => {
   try {

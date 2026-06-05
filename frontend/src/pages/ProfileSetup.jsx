@@ -6,7 +6,7 @@ import axios from 'axios';
 const ProfileSetup = () => {
     const navigate = useNavigate();
 
-    // הסטייט עכשיו מכיל רק את הנתונים הפשוטים שהמשתמש מזין
+    
     const [formData, setFormData] = useState({
         age: '',
         gender: 'male',
@@ -22,7 +22,7 @@ const ProfileSetup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // 1. שולפים את הנתונים שהמשתמש הזין
+        
         const { gender, age, height, startWeight, goalWeight } = formData;
         const weight = parseFloat(startWeight);
         const h = parseFloat(height);
@@ -30,17 +30,17 @@ const ProfileSetup = () => {
         const isMale = gender === 'male';
         const goal = parseFloat(goalWeight);
 
-        // 2. חישוב אוטומטי של קלוריות ומאקרו מאחורי הקלעים
+ 
         let bmr = isMale
             ? (10 * weight) + (6.25 * h) - (5 * a) + 5
             : (10 * weight) + (6.25 * h) - (5 * a) - 161;
 
         let tdee = bmr * 1.55;
 
-        // חישוב הקלוריות - גרעון מתון כדי למנוע רעב, או פלוס מתון למסה
+    
         let targetCalories = tdee;
         if (goal < weight) {
-            targetCalories -= 400; // גרעון מתון לירידה נקייה בשומן
+            targetCalories -= 400; 
         } else if (goal > weight) {
             targetCalories += 300;
         }

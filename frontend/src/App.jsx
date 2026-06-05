@@ -5,6 +5,8 @@ import Login from './pages/Login';
 import Home from './pages/Home'
 import ProfileSetup from './pages/ProfileSetup';
 import MealsDiary from './pages/MealsDiary';
+import Measurements from './pages/Measurements'
+import Workouts from './pages/Workouts';
 
 function App() {
 
@@ -21,6 +23,8 @@ function App() {
             <Route path="/home" element={<Home />} />
             <Route path="/profile-setup" element={<ProfileSetup />} />
             <Route path="/meals-diary" element={<MealsDiary />} />
+            <Route path='/measurements' element={<Measurements/>}/>
+            <Route path="/workouts" element={<Workouts />} />
           </Routes>
         </div>
       </Router>

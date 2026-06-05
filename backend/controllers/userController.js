@@ -105,8 +105,8 @@ const googleAuth = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        // מציאת המשתמש לפי ה-ID
-        const userId = req.user?.userId; // וודא שזה תואם למה שה-Middleware שלך שם ב-req.user
+       
+        const userId = req.user?.userId; 
 
         const updatedData = {
             gender: req.body.gender,

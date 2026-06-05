@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Target, TrendingDown, BarChart2, Dumbbell, Apple, Scale, ArrowRight, Lightbulb } from 'lucide-react';
+import { Target, TrendingDown, BarChart2, Dumbbell, Apple, Scale, ArrowRight, Lightbulb, LucideTrendingUpDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -26,7 +26,6 @@ const Home = () => {
     });
 
     useEffect(() => {
-        // Define one async function to fetch all required dashboard data
         const fetchDashboardData = async () => {
             try {
                 const token = localStorage.getItem('token');
@@ -47,14 +46,27 @@ const Home = () => {
                 });
                 const consumedToday = mealsResponse.data;
 
-                // 3. Update weight state
+                // 3. משיכת היסטוריית המידות כדי לדעת מה המשקל המעודכן ביותר!
+                const measurementsResponse = await axios.get('http://localhost:5000/measurements', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                
+                const measurements = measurementsResponse.data.measurements;
+                
+                const sortedMeasurements = [...measurements].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                
+                const latestWeight = sortedMeasurements.length > 0 ? sortedMeasurements[0].weight : (user.startWeight || 0);
+
+
+                // 4. Update weight state
                 setWeightData({
-                    currentWeight: user.startWeight || 0, // Currently defaulting to start weight
+                    currentWeight: latestWeight, // <--- כאן החיבור החכם לנתון העדכני
                     goalWeight: user.goalWeight || 0,
                     startWeight: user.startWeight || 0
                 });
 
-                // 4. Update nutrition state merging consumed data and target data
+                // 5. Update nutrition state
                 setMacroData({
                     calories: {
                         current: consumedToday.calories || 0,
@@ -79,7 +91,6 @@ const Home = () => {
             }
         };
 
-        // Execute the fetch function
         fetchDashboardData();
     }, [navigate]);
 
@@ -107,10 +118,8 @@ const Home = () => {
         "The best workout is the one you actually show up for."
     ];
 
-    // State for the random tip
     const [dailyTip, setDailyTip] = useState("");
 
-    // Set a random tip when the component loads
     useEffect(() => {
         const randomIndex = Math.floor(Math.random() * fitnessTips.length);
         setDailyTip(fitnessTips[randomIndex]);
@@ -121,6 +130,8 @@ const Home = () => {
         if (!weightData.startWeight || !weightData.goalWeight || weightData.startWeight === weightData.goalWeight) {
             return 0;
         }
+        
+        // ווידוא שלא נציג מינוס אם המשתמש התחיל לעלות במשקל במקום לרדת
         const totalToLose = weightData.startWeight - weightData.goalWeight;
         const lostSoFar = weightData.startWeight - weightData.currentWeight;
         const percentage = Math.min(Math.max((lostSoFar / totalToLose) * 100, 0), 100);
@@ -128,23 +139,24 @@ const Home = () => {
     };
 
     const progress = calculateWeightProgress();
-    const remainingWeight = (weightData.currentWeight - weightData.goalWeight).toFixed(1);
+    const remainingWeight = Math.abs(weightData.currentWeight - weightData.goalWeight).toFixed(1);
 
-    // Data array for the Quick Actions cards
     const quickActions = [
         {
             title: 'Progress',
             subtitle: 'View charts & stats',
             icon: BarChart2,
             color: 'text-blue-500',
-            bgColor: 'bg-blue-50'
+            bgColor: 'bg-blue-50',
+            onClick: () => navigate('/progress') // נוסיף בעתיד
         },
         {
             title: 'Workouts',
             subtitle: 'Log a new workout',
             icon: Dumbbell,
             color: 'text-orange-500',
-            bgColor: 'bg-orange-50'
+            bgColor: 'bg-orange-50',
+            onClick: () => navigate('/workouts') // נוסיף בעתיד
         },
         {
             title: 'Nutrition',
@@ -159,18 +171,18 @@ const Home = () => {
             subtitle: 'Add new body stats',
             icon: Scale,
             color: 'text-purple-500',
-            bgColor: 'bg-purple-50'
+            bgColor: 'bg-purple-50',
+            onClick: () => navigate('/measurements') // שיניתי לאותיות קטנות שיתאים לנתיב
         },
     ];
 
     return (
         <div className="max-w-6xl mx-auto mt-10 p-4 font-sans">
-
             {/* Purple Top Banner */}
             <div className="bg-violet-600 rounded-2xl p-6 text-white shadow-lg mb-8">
                 <div className="flex items-center gap-2 mb-2">
                     <Target className="text-red-400" size={28} />
-                    <h1 className="text-4xl font-bold">Welcome to Fitsync !</h1>
+                    <h1 className="text-4xl font-bold">Welcome to FitSync!</h1>
                 </div>
                 <p className="text-violet-200 mb-6 text-lg">
                     Track your weight, nutrition, and workouts all in one place
@@ -189,10 +201,10 @@ const Home = () => {
                     </div>
 
                     <div className="bg-violet-500/50 rounded-xl p-4 flex flex-col justify-center">
-                        <span className="text-violet-200 text-sm mb-1">Left to Lose</span>
+                        <span className="text-violet-200 text-sm mb-1">Left for goal weight</span>
                         <div className="flex items-center gap-2">
                             <span className="text-2xl font-bold">{remainingWeight} kg</span>
-                            <TrendingDown size={20} className="text-emerald-300" />
+                            <LucideTrendingUpDown size={20} className="text-emerald-300" />
                         </div>
                     </div>
                 </div>
@@ -310,7 +322,6 @@ const Home = () => {
                     Logout
                 </button>
             </div>
-
         </div>
     );
 };
