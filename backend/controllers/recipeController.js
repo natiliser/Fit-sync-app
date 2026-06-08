@@ -30,7 +30,9 @@ const addRecipe = async (req, res) => {
         // טיפול חכם: אם הרכיבים מגיעים כטקסט עם פסיקים, הופכים אותם למערך
         const ingredientsArray = Array.isArray(ingredients) 
             ? ingredients 
-            : ingredients.split(',').map(item => item.trim()).filter(item => item !== '');
+            : ingredients.split(',')
+            .map(item => item.trim())
+            .filter(item => item !== '');
 
         const newRecipe = await Recipe.create({
             name,

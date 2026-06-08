@@ -141,14 +141,14 @@ const updateProfile = async (req, res) => {
 
 const getUserProfile = async (req, res) => {
     try {
-        const userId = req.user.userId; // מגיע מה-authMiddleware
-        const user = await User.findById(userId).select('-password'); // מביא את המשתמש בלי הסיסמה
-        
-        if (!user) return res.status(404).json({ msg: "User not found" });
-        
-        res.json(user);
+        const userId = req.user.userId || req.user._id || req.user.id;
+        const user = await User.findById(userId).select('-password');
+        if (!user) {
+            return res.status(404).json({ msg: "User not found" });
+        }
+        res.status(200).json({ user });
     } catch (error) {
-        res.status(500).json({ msg: "Server error" });
+        res.status(500).json({ msg: "Server error", error: error.message });
     }
 };
 

@@ -2,41 +2,55 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingDown, Activity, Filter, AlertCircle , ArrowLeft  } from 'lucide-react';
+import { TrendingDown, Activity, Filter, AlertCircle, Percent, Ruler , ArrowLeft} from 'lucide-react';
 
 const Progress = () => {
     const navigate = useNavigate();
 
-    // 1. סטייטים לסינון (Filters) לפי SUC-9
-    const [timeRange, setTimeRange] = useState('month'); // 'week' | 'month' | 'all'
-    const [dataType, setDataType] = useState('weight'); // 'weight' | 'workouts'
+   const [timeRange, setTimeRange] = useState('month'); 
+    const [dataType, setDataType] = useState('weight'); 
     
-    // 2. סטייטים לנתונים
     const [rawWeightData, setRawWeightData] = useState([]);
     const [rawWorkoutData, setRawWorkoutData] = useState([]);
     const [chartData, setChartData] = useState([]);
-    
-    // סטייט שמנהל את ההסתעפות של "אין מספיק נתונים"
     const [hasEnoughData, setHasEnoughData] = useState(true);
 
-    // משיכת כל הנתונים מהשרת בטעינה הראשונית
+    // סטייטים חדשים לנתוני המשתמש והסטטיסטיקות
+    const [userData, setUserData] = useState(null);
+    const [currentStats, setCurrentStats] = useState({ bmi: null, bodyFat: null, latestWeight: null });
+
     useEffect(() => {
         const fetchAllData = async () => {
             try {
                 const token = localStorage.getItem('token');
                 
-                // משיכת מידות (לגרף משקל)
+                // משיכת מידות ואימונים (כמו מקודם)
                 const weightRes = await axios.get('http://localhost:5000/measurements', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                
-                // משיכת אימונים (לגרף קלוריות שנשרפו)
                 const workoutsRes = await axios.get('http://localhost:5000/workouts', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
-                setRawWeightData(weightRes.data.measurements);
+                // משיכת נתוני המשתמש בשביל הגובה, הגיל והמגדר (נחוץ לחישובים)
+                // ודא שיש לך ראוט כזה בשרת שמחזיר את פרופיל המשתמש
+                const userRes = await axios.get('http://localhost:5000/users/profile', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                const measurements = weightRes.data.measurements;
+                const user = userRes.data.user;
+
+                setRawWeightData(measurements);
                 setRawWorkoutData(workoutsRes.data.workouts);
+                setUserData(user);
+
+                // חישוב BMI ואחוז שומן אם יש מספיק נתונים
+                if (measurements.length > 0 && user?.height) {
+                    const latestMeasurement = measurements[0]; // המדידה האחרונה ביותר
+                    calculateStats(latestMeasurement, user);
+                }
+
             } catch (error) {
                 console.error("Error fetching data for charts:", error);
             }
@@ -45,13 +59,36 @@ const Progress = () => {
         fetchAllData();
     }, []);
 
-    // לוגיקת הסינון - רצה מחדש כל פעם שהמשתמש משנה את סוג הגרף או את טווח הזמן
+    // הפונקציות המבוקשות מה-UML (calculateBMI, calculateBodyFat)
+    const calculateStats = (measurement, user) => {
+        const weight = measurement.weight;
+        const heightM = user.height / 100; // המרה לסנטימטרים למטרים
+        
+        if (!weight || !heightM) return;
+
+        // 1. חישוב BMI
+        const bmiValue = weight / (heightM * heightM);
+        
+        // 2. חישוב אחוז שומן (נוסחת Deurenberg מבוססת BMI, גיל ומגדר)
+        // אם המגדר לא הוזן, לוקחים ממוצע גס
+        let bodyFatValue = null;
+        if (user.age && user.gender) {
+            const sexFactor = user.gender === 'male' ? 1 : 0;
+            bodyFatValue = (1.20 * bmiValue) + (0.23 * user.age) - (10.8 * sexFactor) - 5.4;
+        }
+
+        setCurrentStats({
+            latestWeight: weight,
+            bmi: bmiValue.toFixed(1),
+            bodyFat: bodyFatValue ? bodyFatValue.toFixed(1) : 'N/A'
+        });
+    };
+
     useEffect(() => {
         processData(dataType, timeRange);
     }, [dataType, timeRange, rawWeightData, rawWorkoutData]);
 
     const processData = (type, range) => {
-        // בחירת מקור הנתונים הנכון
         let sourceData = type === 'weight' ? [...rawWeightData] : [...rawWorkoutData];
         
         if (sourceData.length === 0) {
@@ -59,23 +96,13 @@ const Progress = () => {
             return;
         }
 
-        // חישוב תאריך החיתוך (Cutoff Date)
         const cutoffDate = new Date();
-        if (range === 'week') {
-            cutoffDate.setDate(cutoffDate.getDate() - 7);
-        } else if (range === 'month') {
-            cutoffDate.setMonth(cutoffDate.getMonth() - 1);
-        } else {
-            cutoffDate.setFullYear(2000); // כל הזמנים
-        }
+        if (range === 'week') cutoffDate.setDate(cutoffDate.getDate() - 7);
+        else if (range === 'month') cutoffDate.setMonth(cutoffDate.getMonth() - 1);
+        else cutoffDate.setFullYear(2000); 
 
-        // סינון הנתונים לפי התאריך
-        const filtered = sourceData.filter(item => {
-            const itemDate = new Date(item.date);
-            return itemDate >= cutoffDate;
-        });
+        const filtered = sourceData.filter(item => new Date(item.date) >= cutoffDate);
 
-        // בדיקת הסתעפות (SUC-9): האם יש מספיק נתונים להציג מגמה? (לפחות 2 נקודות לגרף קו, או 1 לבר)
         const requiredPoints = type === 'weight' ? 2 : 1;
         if (filtered.length < requiredPoints) {
             setHasEnoughData(false);
@@ -85,7 +112,6 @@ const Progress = () => {
 
         setHasEnoughData(true);
 
-        // עיבוד הנתונים לפורמט ש-Recharts אוהב והפיכת הסדר (מהישן לחדש)
         const formatted = filtered.map(item => ({
             date: new Date(item.date).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' }),
             value: type === 'weight' ? item.weight : item.caloriesBurned
@@ -94,7 +120,6 @@ const Progress = () => {
         setChartData(formatted);
     };
 
-    // עיצוב החלונית שקופצת במעבר עכבר
     const CustomTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
             return (
@@ -122,14 +147,47 @@ const Progress = () => {
                 <p className="text-gray-500 mt-1">Analyze your data and track your journey</p>
             </div>
 
-            {/* SUC-9: תפריט סינון (שאילתות) */}
+           {/* כרטיסיות הסטטיסטיקה החדשות (BMI ואחוז שומן) */}
+            {currentStats.latestWeight && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div className="p-3 bg-violet-50 text-violet-600 rounded-xl">
+                            <Ruler size={24} />
+                        </div>
+                        <div>
+                            <p className="text-gray-500 text-sm font-semibold uppercase tracking-wider">Current BMI</p>
+                            <p className="text-2xl font-bold text-gray-800">{currentStats.bmi}</p>
+                        </div>
+                    </div>
+                    
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div className="p-3 bg-pink-50 text-pink-600 rounded-xl">
+                            <Percent size={24} />
+                        </div>
+                        <div>
+                            <p className="text-gray-500 text-sm font-semibold uppercase tracking-wider">Body Fat Est.</p>
+                            <p className="text-2xl font-bold text-gray-800">{currentStats.bodyFat}%</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+                        <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                            <Activity size={24} />
+                        </div>
+                        <div>
+                            <p className="text-gray-500 text-sm font-semibold uppercase tracking-wider">Latest Weight</p>
+                            <p className="text-2xl font-bold text-gray-800">{currentStats.latestWeight} kg</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6 flex flex-col sm:flex-row items-center gap-4">
                 <div className="flex items-center gap-2 text-gray-700 font-semibold w-full sm:w-auto">
                     <Filter size={20} className="text-violet-500" />
                     Filters:
                 </div>
                 
-                {/* סינון סוג נתונים */}
                 <select 
                     value={dataType} 
                     onChange={(e) => setDataType(e.target.value)}
@@ -139,7 +197,6 @@ const Progress = () => {
                     <option value="workouts">Calories Burned (Workouts)</option>
                 </select>
 
-                {/* סינון טווח זמן */}
                 <select 
                     value={timeRange} 
                     onChange={(e) => setTimeRange(e.target.value)}
@@ -151,10 +208,7 @@ const Progress = () => {
                 </select>
             </div>
 
-            {/* אזור תצוגת הגרף או השגיאה */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 h-96">
-                
-                {/* הסתעפות SUC-9: הודעת חוסר נתונים */}
                 {!hasEnoughData ? (
                     <div className="h-full flex flex-col items-center justify-center text-gray-500 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
                         <AlertCircle size={48} className="text-amber-400 mb-4" />
@@ -162,10 +216,8 @@ const Progress = () => {
                         <p className="text-sm">יש למלא את כל הנתונים וכל המידות של המשתמש כדי לראות סטטיסטיקות.</p>
                     </div>
                 ) : (
-                    /* הצגת הגרף אם יש נתונים */
                     <ResponsiveContainer width="100%" height="100%">
                         {dataType === 'weight' ? (
-                            // גרף קו/שטח למשקל
                             <AreaChart data={chartData} margin={{ top: 20, right: 20, left: -20, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
@@ -180,7 +232,6 @@ const Progress = () => {
                                 <Area type="monotone" dataKey="value" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" activeDot={{ r: 6, fill: '#8b5cf6', stroke: '#fff', strokeWidth: 2 }} />
                             </AreaChart>
                         ) : (
-                            // גרף עמודות לקלוריות מאימונים
                             <BarChart data={chartData} margin={{ top: 20, right: 20, left: -20, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                                 <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} dy={10} />

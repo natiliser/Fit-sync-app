@@ -9,8 +9,9 @@ import Measurements from './pages/Measurements'
 import Workouts from './pages/Workouts';
 import Progress from './pages/Progress';
 import Recipes from './pages/Recipes'
-import AdminRoute from './pages/AdminRoute';
-import AdminRecipes from './pages/AdminRecipes';
+import AdminRoute from './components/AdminRoute';
+import AdminRecipes from './components/AdminRecipes';
+import AdminDashboard from './components/AdminDashboard';
 
 function App() {
 
@@ -32,11 +33,13 @@ function App() {
             <Route path="/progress" element={<Progress />} />
             <Route path="/recipes" element={<Recipes />} />
             {/* נתיב מוגן למנהלים בלבד! */}
-            <Route path="/admin" element= {
-              <AdminRoute>
-                <AdminRecipes />
-              </AdminRoute>
-              }/>
+            <Route
+              path="/admin" element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
+              }
+            />
             {/* נתיב מוגן למנהלים בלבד! */}
           </Routes>
         </div>

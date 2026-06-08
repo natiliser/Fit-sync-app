@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { Target, TrendingDown, BarChart2, Dumbbell, Apple, Scale, ArrowRight, Lightbulb, LucideTrendingUpDown , ChefHat } from 'lucide-react';
+import { jwtDecode } from "jwt-decode";
+import { Target, TrendingDown, BarChart2, Dumbbell, Apple, Scale, ArrowRight, Lightbulb, LucideTrendingUpDown, ChefHat, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -38,7 +39,7 @@ const Home = () => {
                 const userResponse = await axios.get('http://localhost:5000/users/profile', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                const user = userResponse.data;
+                const user = userResponse.data.user || userResponse.data;
 
                 // 2. Fetch today's consumed meals summary
                 const mealsResponse = await axios.get('http://localhost:5000/meals/today', {
@@ -51,11 +52,11 @@ const Home = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
-                
+
                 const measurements = measurementsResponse.data.measurements;
-                
+
                 const sortedMeasurements = [...measurements].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                
+
                 const latestWeight = sortedMeasurements.length > 0 ? sortedMeasurements[0].weight : (user.startWeight || 0);
 
 
@@ -130,7 +131,7 @@ const Home = () => {
         if (!weightData.startWeight || !weightData.goalWeight || weightData.startWeight === weightData.goalWeight) {
             return 0;
         }
-        
+
         // ווידוא שלא נציג מינוס אם המשתמש התחיל לעלות במשקל במקום לרדת
         const totalToLose = weightData.startWeight - weightData.goalWeight;
         const lostSoFar = weightData.startWeight - weightData.currentWeight;
@@ -164,17 +165,17 @@ const Home = () => {
             icon: Apple,
             color: 'text-green-500',
             bgColor: 'bg-green-50',
-            onClick: () => navigate('/meals-diary') 
+            onClick: () => navigate('/meals-diary')
         },
         {
-            title: 'Measures', 
+            title: 'Measures',
             subtitle: 'Body stats',
             icon: Scale,
             color: 'text-purple-500',
             bgColor: 'bg-purple-50',
             onClick: () => navigate('/measurements')
         },
-     
+
         {
             title: 'Recipes',
             subtitle: 'Healthy ideas',
@@ -185,17 +186,44 @@ const Home = () => {
         }
     ];
 
+    const checkIsAdmin = () => {
+        const token = localStorage.getItem('token');
+        if (!token) return false;
+        try {
+            const decoded = jwtDecode(token);
+            return decoded.role === 'admin';
+        } catch (error) {
+            return false;
+        }
+    };
+
+    const isAdmin = checkIsAdmin();
+
     return (
         <div className="max-w-6xl mx-auto mt-10 p-4 font-sans">
+            {/* Admin panel */}
+
             {/* Purple Top Banner */}
             <div className="bg-violet-600 rounded-2xl p-6 text-white shadow-lg mb-8">
+                {isAdmin && (
+                    <button
+                        onClick={() => navigate('/admin')}
+                        className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-800 transition-colors shadow-md"
+                    >
+                        <Settings size={18} className="text-violet-400" />
+                        Admin Panel
+                    </button>
+                )}
                 <div className="flex items-center gap-2 mb-2">
+
                     <Target className="text-red-400" size={28} />
                     <h1 className="text-4xl font-bold">Welcome to FitSync!</h1>
                 </div>
+
                 <p className="text-violet-200 mb-6 text-lg">
                     Track your weight, nutrition, and workouts all in one place
                 </p>
+
 
                 {/* Weight Data Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
