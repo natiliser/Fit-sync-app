@@ -32,12 +32,8 @@ app.use('/workouts', workoutRoutes);
 app.use('/recipes', recipeRoutes);
 app.use('/meals', mealRoutes);
 app.use('/measurements', measurementRoutes)
-app.use('/workouts', require('./routes/workoutRoutes'));
 
 
-// app.get('/', (req, res) => {
-//     res.send("<h2>FitSync Server is Running!</h2>");
-// });
 
 const start = async () => {
   try {

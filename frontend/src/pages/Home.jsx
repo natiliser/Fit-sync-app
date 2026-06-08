@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Target, TrendingDown, BarChart2, Dumbbell, Apple, Scale, ArrowRight, Lightbulb, LucideTrendingUpDown } from 'lucide-react';
+import { Target, TrendingDown, BarChart2, Dumbbell, Apple, Scale, ArrowRight, Lightbulb, LucideTrendingUpDown , ChefHat } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -144,36 +144,45 @@ const Home = () => {
     const quickActions = [
         {
             title: 'Progress',
-            subtitle: 'View charts & stats',
+            subtitle: 'View charts',
             icon: BarChart2,
             color: 'text-blue-500',
             bgColor: 'bg-blue-50',
-            onClick: () => navigate('/progress') // נוסיף בעתיד
+            onClick: () => navigate('/progress')
         },
         {
             title: 'Workouts',
-            subtitle: 'Log a new workout',
+            subtitle: 'Log session',
             icon: Dumbbell,
             color: 'text-orange-500',
             bgColor: 'bg-orange-50',
-            onClick: () => navigate('/workouts') // נוסיף בעתיד
+            onClick: () => navigate('/workouts')
         },
         {
             title: 'Nutrition',
-            subtitle: 'Track your meals',
+            subtitle: 'Track meals',
             icon: Apple,
             color: 'text-green-500',
             bgColor: 'bg-green-50',
             onClick: () => navigate('/meals-diary') 
         },
         {
-            title: 'Measurements',
-            subtitle: 'Add new body stats',
+            title: 'Measures', 
+            subtitle: 'Body stats',
             icon: Scale,
             color: 'text-purple-500',
             bgColor: 'bg-purple-50',
-            onClick: () => navigate('/measurements') // שיניתי לאותיות קטנות שיתאים לנתיב
+            onClick: () => navigate('/measurements')
         },
+     
+        {
+            title: 'Recipes',
+            subtitle: 'Healthy ideas',
+            icon: ChefHat,
+            color: 'text-pink-500',
+            bgColor: 'bg-pink-50',
+            onClick: () => navigate('/recipes')
+        }
     ];
 
     return (
@@ -283,29 +292,32 @@ const Home = () => {
             </div>
 
             {/* Quick Actions Section */}
+            {/* Quick Actions Section */}
             <div>
                 <div className="flex justify-between items-end mb-4 px-1">
                     <h2 className="text-xl font-bold text-gray-800">Quick Actions</h2>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+                {/* שינוי ל- grid-cols-5 במסכים גדולים, והקטנת הגאפ ל-3 */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-10">
                     {quickActions.map((action, index) => {
                         const Icon = action.icon;
                         return (
                             <div
                                 key={index}
                                 onClick={action.onClick}
-                                className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer relative group hover:-translate-y-1"
+                                // הקטנתי את ה-padding (p-4 במקום p-6) כדי שישתלב טוב בשורה אחת
+                                className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer relative group hover:-translate-y-1"
                             >
-                                <div className="flex justify-between items-start mb-8">
-                                    <div className={`p-3 rounded-xl ${action.bgColor} ${action.color}`}>
-                                        <Icon size={24} />
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className={`p-2.5 rounded-xl ${action.bgColor} ${action.color}`}>
+                                        <Icon size={22} />
                                     </div>
-                                    <ArrowRight size={20} className="text-gray-300 group-hover:text-gray-800 transition-colors" />
+                                    <ArrowRight size={18} className="text-gray-300 group-hover:text-gray-800 transition-colors" />
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-gray-800 text-lg">{action.title}</h3>
-                                    <p className="text-gray-500 text-sm mt-1">{action.subtitle}</p>
+                                    <h3 className="font-bold text-gray-800 text-base">{action.title}</h3>
+                                    <p className="text-gray-500 text-xs mt-0.5">{action.subtitle}</p>
                                 </div>
                             </div>
                         );

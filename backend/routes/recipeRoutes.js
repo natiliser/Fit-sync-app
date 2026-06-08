@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { createRecipe, getAllRecipes } = require('../controllers/recipeController');
+const { getAllRecipes, addRecipe, deleteRecipe } = require('../controllers/recipeController');
+const authMiddleware = require('../middleware/auth');
 
-// Define routes for /recipes
-router.route('/')
-    .post(createRecipe)
-    .get(getAllRecipes);
+router.get('/', getAllRecipes); // פתוח לכולם (או למחוברים בלבד, לבחירתך)
+router.post('/', authMiddleware, addRecipe); // מוגן באימות (הקונטרולר בודק Admin)
+router.delete('/:id', authMiddleware, deleteRecipe); // מוגן באימות
 
 module.exports = router;

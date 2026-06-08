@@ -7,10 +7,14 @@ import ProfileSetup from './pages/ProfileSetup';
 import MealsDiary from './pages/MealsDiary';
 import Measurements from './pages/Measurements'
 import Workouts from './pages/Workouts';
+import Progress from './pages/Progress';
+import Recipes from './pages/Recipes'
+import AdminRoute from './pages/AdminRoute';
+import AdminRecipes from './pages/AdminRecipes';
 
 function App() {
 
- const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   return (
     <GoogleOAuthProvider clientId={clientId}>
@@ -23,8 +27,17 @@ function App() {
             <Route path="/home" element={<Home />} />
             <Route path="/profile-setup" element={<ProfileSetup />} />
             <Route path="/meals-diary" element={<MealsDiary />} />
-            <Route path='/measurements' element={<Measurements/>}/>
+            <Route path='/measurements' element={<Measurements />} />
             <Route path="/workouts" element={<Workouts />} />
+            <Route path="/progress" element={<Progress />} />
+            <Route path="/recipes" element={<Recipes />} />
+            {/* נתיב מוגן למנהלים בלבד! */}
+            <Route path="/admin" element= {
+              <AdminRoute>
+                <AdminRecipes />
+              </AdminRoute>
+              }/>
+            {/* נתיב מוגן למנהלים בלבד! */}
           </Routes>
         </div>
       </Router>

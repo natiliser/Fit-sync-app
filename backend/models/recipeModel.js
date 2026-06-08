@@ -1,42 +1,38 @@
 const mongoose = require('mongoose');
 
-const RecipeSchema = new mongoose.Schema({
-    // The name of the recipe
-    title: {
+const recipeSchema = new mongoose.Schema({
+    name: { 
+        type: String, 
+        required: true 
+    },
+    category: { 
+        type: String, 
+        required: true 
+    },
+    ingredients: { 
+        type: [String], 
+        required: true 
+    },
+    calories: { 
+        type: Number, 
+        required: true 
+    },
+    protein: { 
+        type: Number, 
+        required: true 
+    },
+    carbs: { 
+        type: Number, 
+        required: true 
+    },
+    fat: { 
+        type: Number, 
+        required: true 
+    },
+    image: { 
         type: String,
-        required: [true, 'Please provide a recipe title'],
-        trim: true
-    },
-    // Recipe category based on the SRS document
-    category: {
-        type: String,
-        enum: ['High Protein', 'Pre-Workout', 'Post-Workout', 'Recovery', 'General'],
-        default: 'General'
-    },
-    // Preparation time in minutes
-    prepTime: {
-        type: Number,
-        required: [true, 'Please provide preparation time']
-    },
-    // Array of ingredients needed for the recipe
-    ingredients: {
-        type: [String],
-        required: [true, 'Please provide ingredients']
-    },
-    // Total calories per serving
-    calories: {
-        type: Number,
-        required: true
-    },
-    // Difficulty level of preparation
-    difficulty: {
-        type: String,
-        enum: ['Easy', 'Medium', 'Hard'],
-        default: 'Medium'
+        default: ''
     }
-}, {
-    // Automatically creates 'createdAt' and 'updatedAt' fields
-    timestamps: true 
-});
+}, { timestamps: true });
 
-module.exports = mongoose.model('Recipe', RecipeSchema);
+module.exports = mongoose.model('Recipe', recipeSchema);
