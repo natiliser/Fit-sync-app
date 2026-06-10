@@ -11,9 +11,7 @@ const AdminDashboard = () => {
 
     return (
         <div className="max-w-6xl mx-auto mt-8 p-4 font-sans">
-            <button onClick={() => navigate('/home')} className="flex items-center gap-2 text-violet-600 font-semibold hover:text-violet-800 transition-colors">
-                    <ArrowLeft size={20} /> Dashboard
-            </button>
+            
             {/* כותרת ראשית לפאנל */}
             <div className="bg-slate-900 rounded-3xl p-8 mb-8 text-white shadow-lg flex items-center gap-4">
                 <div className="p-3 bg-slate-800 rounded-2xl">
