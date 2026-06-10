@@ -174,16 +174,41 @@ const handleSaveMeasurement = async (e) => {
                                     <h3 className="text-xs font-bold text-violet-800 uppercase tracking-wider mb-2">Optional - For Body Fat %</h3>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
-                                            <label className="block text-xs font-semibold text-gray-600 mb-1">Waist (cm)</label>
-                                            <input type="number" step="0.1" name="waist" value={formData.waist} onChange={handleChange} className="w-full p-2.5 bg-white border border-gray-200 rounded-lg" />
+                                            <label className="block text-xs font-semibold text-gray-600 mb-1">Waist at navel (cm)</label>
+                                            <input 
+                                            type="number" 
+                                            step="0.1" 
+                                            name="waist" 
+                                            value={formData.waist} 
+                                            onChange={handleChange} 
+                                            className="w-full p-2.5 bg-white border border-gray-200 rounded-lg"
+                                            placeholder="e.g. 85"
+                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-semibold text-gray-600 mb-1">Neck (cm)</label>
-                                            <input type="number" step="0.1" name="neck" value={formData.neck} onChange={handleChange} className="w-full p-2.5 bg-white border border-gray-200 rounded-lg" />
+                                            <label className="block text-xs font-semibold text-gray-600 mb-1">Neck Below the Adam's apple (cm)</label>
+                                            <input 
+                                            type="number" 
+                                            step="0.1" 
+                                            name="neck" 
+                                            value={formData.neck} 
+                                            onChange={handleChange} 
+                                            className="w-full p-2.5 bg-white border border-gray-200 rounded-lg"
+                                            placeholder="e.g. 38"
+                                             />
                                         </div>
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 mb-1">Hip (cm)</label>
-                                            <input type="number" step="0.1" name="hip" value={formData.hip} onChange={handleChange} className="w-full p-2.5 bg-white border border-gray-200 rounded-lg" />
+                                            <h5 className="block text-xs font-semibold text-gray-600 mb-1">* women only</h5>
+                                            <input 
+                                            type="number"
+                                             step="0.1" 
+                                             name="hip" 
+                                             value={formData.hip}
+                                             onChange={handleChange} 
+                                             className="w-full p-2.5 bg-white border border-gray-200 rounded-lg" 
+                                             placeholder="e.g. 95"
+                                              />
                                         </div>
                                     </div>
                                 </div>
@@ -223,10 +248,11 @@ const handleSaveMeasurement = async (e) => {
                                     </p>
                                 </div>
                                 
-                                {(log.waist || log.neck) && (
+                                {(log.waist || log.neck || log.hip) && (
                                     <div className="flex gap-4 text-sm bg-white px-4 py-2 rounded-lg border border-gray-200">
                                         {log.waist && <div><span className="text-gray-400 text-xs block">Waist</span> <span className="font-semibold">{log.waist}cm</span></div>}
                                         {log.neck && <div><span className="text-gray-400 text-xs block">Neck</span> <span className="font-semibold">{log.neck}cm</span></div>}
+                                        {log.hip && <div><span className="text-gray-400 text-xs block">Hip</span> <span className="font-semibold">{log.hip}cm</span></div>}
                                     </div>
                                 )}
                             </div>
