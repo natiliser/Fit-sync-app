@@ -115,9 +115,7 @@ const handleSaveMeasurement = async (e) => {
     <div className="max-w-4xl mx-auto mt-10 p-4 font-sans">
             {/* Header Actions */}
             <div className="flex justify-between items-center mb-6">
-                <button onClick={() => navigate('/home')} className="flex items-center gap-2 text-violet-600 font-semibold hover:text-violet-800 transition-colors">
-                    <ArrowLeft size={20} /> Dashboard
-                </button>
+                
                 <button onClick={() => setIsAdding(!isAdding)} className="flex items-center gap-2 bg-violet-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-violet-700 transition-colors">
                     {isAdding ? 'Cancel' : <><Plus size={20} /> Log Measurement</>}
                 </button>

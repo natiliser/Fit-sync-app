@@ -173,9 +173,7 @@ const Progress = () => {
     return (
         <div className="max-w-5xl mx-auto mt-10 p-4 font-sans" dir="ltr">
             <div className="mb-8 text-left">
-                <button onClick={() => navigate('/home')} className="flex items-center gap-2 text-violet-600 font-semibold hover:text-violet-800 transition-colors mb-2">
-                    <ArrowLeft size={20} /> Dashboard
-                </button>
+                
                 <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
                     <TrendingDown className="text-violet-600" size={32} />
                     Stats & Progress

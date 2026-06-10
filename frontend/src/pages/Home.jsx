@@ -1,16 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from "jwt-decode";
-import { Target, TrendingDown, BarChart2, Dumbbell, Apple, Scale, ArrowRight, Lightbulb, LucideTrendingUpDown, ChefHat, Settings } from 'lucide-react';
+import { Target, Lightbulb, LucideTrendingUpDown, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const Home = () => {
     const navigate = useNavigate();
-
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        navigate('/login');
-    };
 
     // Initialize state with default values until the server responds
     const [weightData, setWeightData] = useState({
@@ -26,6 +21,9 @@ const Home = () => {
         fat: { current: 0, target: 0 }
     });
 
+    // Default fallback height in cm (will be overwritten by DB)
+    const [userHeight, setUserHeight] = useState(175);
+
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
@@ -35,11 +33,15 @@ const Home = () => {
                     return;
                 }
 
-                // 1. Fetch user profile (to get daily targets and weights)
+                // 1. Fetch user profile
                 const userResponse = await axios.get('http://localhost:5000/users/profile', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const user = userResponse.data.user || userResponse.data;
+
+                if (user.height) {
+                    setUserHeight(user.height);
+                }
 
                 // 2. Fetch today's consumed meals summary
                 const mealsResponse = await axios.get('http://localhost:5000/meals/today', {
@@ -47,22 +49,25 @@ const Home = () => {
                 });
                 const consumedToday = mealsResponse.data;
 
-                // 3. משיכת היסטוריית המידות כדי לדעת מה המשקל המעודכן ביותר!
+                // 3. Fetch measurements history to get the absolute latest logged weight
                 const measurementsResponse = await axios.get('http://localhost:5000/measurements', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
+                const measurements = measurementsResponse.data.measurements || [];
+                let latestWeight = user.startWeight || 0;
 
-                const measurements = measurementsResponse.data.measurements;
+                if (measurements.length > 0) {
 
-                const sortedMeasurements = [...measurements].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    const sorted = [...measurements].sort((a, b) =>
+                        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-                const latestWeight = sortedMeasurements.length > 0 ? sortedMeasurements[0].weight : (user.startWeight || 0);
-
+                    latestWeight = sorted[sorted.length - 1].weight;
+                }
 
                 // 4. Update weight state
                 setWeightData({
-                    currentWeight: latestWeight, // <--- כאן החיבור החכם לנתון העדכני
+                    currentWeight: latestWeight,
                     goalWeight: user.goalWeight || 0,
                     startWeight: user.startWeight || 0
                 });
@@ -106,17 +111,7 @@ const Home = () => {
         "Carbs are not the enemy! They provide the energy you need for intense workouts.",
         "Warm up before every session — cold muscles are injury-waiting-to-happen.",
         "Rest days are not lazy days. Muscles grow during recovery, not during the workout.",
-        "Track your workouts. What gets measured gets improved.",
-        "Compound movements like squats, deadlifts, and bench press give you the most bang for your buck.",
-        "Healthy fats from avocados, nuts, and olive oil support hormone production — including testosterone.",
-        "Your workout starts in the kitchen. You can't out-train a bad diet.",
-        "Stretching after a workout reduces soreness and improves long-term flexibility.",
-        "Mental health is fitness too. Exercise reduces cortisol and boosts serotonin naturally.",
-        "Don't compare your chapter 1 to someone else's chapter 10. Progress is personal.",
-        "A 20-minute walk is still better than zero minutes on the couch.",
-        "Creatine is one of the most researched and proven supplements — safe, effective, and affordable.",
-        "Breathing matters: exhale on exertion, inhale on the way back.",
-        "The best workout is the one you actually show up for."
+        "Track your workouts. What gets measured gets improved."
     ];
 
     const [dailyTip, setDailyTip] = useState("");
@@ -126,65 +121,52 @@ const Home = () => {
         setDailyTip(fitnessTips[randomIndex]);
     }, []);
 
-    // Calculate progress percentage for the Weight Progress Bar safely
     const calculateWeightProgress = () => {
         if (!weightData.startWeight || !weightData.goalWeight || weightData.startWeight === weightData.goalWeight) {
             return 0;
         }
-
-        // ווידוא שלא נציג מינוס אם המשתמש התחיל לעלות במשקל במקום לרדת
         const totalToLose = weightData.startWeight - weightData.goalWeight;
         const lostSoFar = weightData.startWeight - weightData.currentWeight;
-        const percentage = Math.min(Math.max((lostSoFar / totalToLose) * 100, 0), 100);
-        return percentage.toFixed(0);
+        return Math.min(Math.max((lostSoFar / totalToLose) * 100, 0), 100).toFixed(0);
     };
 
     const progress = calculateWeightProgress();
     const remainingWeight = Math.abs(weightData.currentWeight - weightData.goalWeight).toFixed(1);
 
-    const quickActions = [
-        {
-            title: 'Progress',
-            subtitle: 'View charts',
-            icon: BarChart2,
-            color: 'text-blue-500',
-            bgColor: 'bg-blue-50',
-            onClick: () => navigate('/progress')
-        },
-        {
-            title: 'Workouts',
-            subtitle: 'Log session',
-            icon: Dumbbell,
-            color: 'text-orange-500',
-            bgColor: 'bg-orange-50',
-            onClick: () => navigate('/workouts')
-        },
-        {
-            title: 'Nutrition',
-            subtitle: 'Track meals',
-            icon: Apple,
-            color: 'text-green-500',
-            bgColor: 'bg-green-50',
-            onClick: () => navigate('/meals-diary')
-        },
-        {
-            title: 'Measures',
-            subtitle: 'Body stats',
-            icon: Scale,
-            color: 'text-purple-500',
-            bgColor: 'bg-purple-50',
-            onClick: () => navigate('/measurements')
-        },
+    // Remaining nutrition logic
+    const remainingCalories = Math.max(macroData.calories.target - macroData.calories.current, 0);
+    const remainingProtein = Math.max(macroData.protein.target - macroData.protein.current, 0);
 
-        {
-            title: 'Recipes',
-            subtitle: 'Healthy ideas',
-            icon: ChefHat,
-            color: 'text-pink-500',
-            bgColor: 'bg-pink-50',
-            onClick: () => navigate('/recipes')
-        }
-    ];
+
+    const heightCm = userHeight;
+    const heightM = heightCm / 100;
+    const bmiValue = (weightData.currentWeight > 0 && heightM > 0)
+        ? weightData.currentWeight / (heightM * heightM)
+        : 0;
+    const bmi = bmiValue > 0 ? bmiValue.toFixed(1) : 0;
+
+    // Map BMI range (15 to 35) to gauge degrees (0 to 180)
+    const getBmiNeedleRotation = () => {
+        const minBmi = 15;
+        const maxBmi = 35;
+        const percentage = Math.min(Math.max((bmi - minBmi) / (maxBmi - minBmi), 0), 1);
+        return percentage * 180;
+    };
+
+    const getBmiCategory = () => {
+        if (bmi < 18.5) return { text: "Underweight", color: "text-yellow-400" };
+        if (bmi < 25) return { text: "Normal Weight", color: "text-emerald-400" };
+        if (bmi < 30) return { text: "Overweight", color: "text-orange-400" };
+        return { text: "Obese", color: "text-red-400" };
+    };
+
+    // Circular progress ring helper function
+    const getCircleOffset = (current, target) => {
+        const radius = 24;
+        const circumference = 2 * Math.PI * radius;
+        const pct = Math.min(current / (target || 1), 1);
+        return circumference - pct * circumference;
+    };
 
     const checkIsAdmin = () => {
         const token = localStorage.getItem('token');
@@ -197,171 +179,193 @@ const Home = () => {
         }
     };
 
-    const isAdmin = checkIsAdmin();
-
     return (
-        <div className="max-w-6xl mx-auto mt-10 p-4 font-sans">
-            {/* Admin panel */}
+        <div className="max-w-6xl mx-auto mt-10 p-4 font-sans" dir="ltr">
 
-            {/* Purple Top Banner */}
-            <div className="bg-violet-600 rounded-2xl p-6 text-white shadow-lg mb-8">
-                {isAdmin && (
-                    <button
-                        onClick={() => navigate('/admin')}
-                        className="bg-slate-900 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-800 transition-colors shadow-md"
-                    >
-                        <Settings size={18} className="text-violet-400" />
-                        Admin Panel
-                    </button>
-                )}
-                <div className="flex items-center gap-2 mb-2">
+            {/* Main Expanded Purple Card Container */}
+            <div className="bg-violet-600 rounded-3xl p-8 text-white shadow-xl flex flex-col gap-8 min-h-[600px] text-left">
 
-                    <Target className="text-red-400" size={28} />
-                    <h1 className="text-4xl font-bold">Welcome to FitSync!</h1>
+                {/* Header & Admin Panel Button */}
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                    <div className="flex items-center gap-3">
+                        <Target className="text-red-400" size={32} strokeWidth={2.5} />
+                        <h1 className="text-4xl font-bold tracking-tight">Welcome to FitSync!</h1>
+                    </div>
+
+                    {checkIsAdmin() && (
+                        <button
+                            onClick={() => navigate('/admin')}
+                            className="bg-slate-950/40 border border-violet-400/30 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-slate-900 transition-all shadow-md self-start md:self-auto"
+                        >
+                            <Settings size={18} className="text-violet-300" />
+                            Admin Panel
+                        </button>
+                    )}
                 </div>
 
-                <p className="text-violet-200 mb-6 text-lg">
-                    Track your weight, nutrition, and workouts all in one place
+                <p className="text-violet-200 text-lg -mt-4">
+                    Track your weight, nutrition, and workouts all in one place.
                 </p>
 
-
-                {/* Weight Data Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div className="bg-violet-500/50 rounded-xl p-4 flex flex-col justify-center">
-                        <span className="text-violet-200 text-sm mb-1">Current Weight</span>
-                        <span className="text-2xl font-bold">{weightData.currentWeight} kg</span>
+                {/* Weight Data Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    <div className="bg-violet-500/40 border border-violet-400/20 rounded-2xl p-5 flex flex-col justify-center shadow-sm">
+                        <span className="text-violet-200 text-sm font-medium mb-1">Current Weight</span>
+                        <span className="text-3xl font-bold">{weightData.currentWeight} kg</span>
                     </div>
 
-                    <div className="bg-violet-500/50 rounded-xl p-4 flex flex-col justify-center">
-                        <span className="text-violet-200 text-sm mb-1">Goal Weight</span>
-                        <span className="text-2xl font-bold">{weightData.goalWeight} kg</span>
+                    <div className="bg-violet-500/40 border border-violet-400/20 rounded-2xl p-5 flex flex-col justify-center shadow-sm">
+                        <span className="text-violet-200 text-sm font-medium mb-1">Goal Weight</span>
+                        <span className="text-3xl font-bold">{weightData.goalWeight} kg</span>
                     </div>
 
-                    <div className="bg-violet-500/50 rounded-xl p-4 flex flex-col justify-center">
-                        <span className="text-violet-200 text-sm mb-1">Left for goal weight</span>
+                    <div className="bg-violet-500/40 border border-violet-400/20 rounded-2xl p-5 flex flex-col justify-center shadow-sm">
+                        <span className="text-violet-200 text-sm font-medium mb-1">Left for Goal Weight</span>
                         <div className="flex items-center gap-2">
-                            <span className="text-2xl font-bold">{remainingWeight} kg</span>
-                            <LucideTrendingUpDown size={20} className="text-emerald-300" />
+                            <span className="text-3xl font-bold">{remainingWeight} kg</span>
+                            <LucideTrendingUpDown size={22} className="text-emerald-300" />
                         </div>
                     </div>
                 </div>
 
-                {/* Daily Nutrition Targets */}
-                <div className="bg-violet-800/40 rounded-xl p-4 mb-6 border border-violet-500/30">
-                    <h3 className="text-violet-200 text-sm font-semibold mb-3 tracking-wide">TODAY'S NUTRITION</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        {/* Calories */}
+                {/* Grid Split: Left 2/3 Nutrition Rings, Right 1/3 BMI Gauge */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    {/* Nutrition rings display wrapper */}
+                    <div className="lg:col-span-2 bg-violet-950/30 rounded-2xl p-6 border border-violet-500/20 shadow-inner flex flex-col justify-between">
                         <div>
-                            <div className="flex justify-between text-xs text-violet-100 mb-1">
-                                <span>Calories</span>
-                                <span>{macroData.calories.current} / {macroData.calories.target}</span>
-                            </div>
-                            <div className="w-full bg-violet-900/60 rounded-full h-2">
-                                <div className="bg-orange-400 h-2 rounded-full" style={{ width: `${Math.min((macroData.calories.current / (macroData.calories.target || 1)) * 100, 100)}%` }}></div>
-                            </div>
-                        </div>
-                        {/* Protein */}
-                        <div>
-                            <div className="flex justify-between text-xs text-violet-100 mb-1">
-                                <span>Protein</span>
-                                <span>{macroData.protein.current}g / {macroData.protein.target}g</span>
-                            </div>
-                            <div className="w-full bg-violet-900/60 rounded-full h-2">
-                                <div className="bg-blue-400 h-2 rounded-full" style={{ width: `${Math.min((macroData.protein.current / (macroData.protein.target || 1)) * 100, 100)}%` }}></div>
-                            </div>
-                        </div>
-                        {/* Carbs */}
-                        <div>
-                            <div className="flex justify-between text-xs text-violet-100 mb-1">
-                                <span>Carbs</span>
-                                <span>{macroData.carbs.current}g / {macroData.carbs.target}g</span>
-                            </div>
-                            <div className="w-full bg-violet-900/60 rounded-full h-2">
-                                <div className="bg-green-400 h-2 rounded-full" style={{ width: `${Math.min((macroData.carbs.current / (macroData.carbs.target || 1)) * 100, 100)}%` }}></div>
-                            </div>
-                        </div>
-                        {/* Fats */}
-                        <div>
-                            <div className="flex justify-between text-xs text-violet-100 mb-1">
-                                <span>Fat</span>
-                                <span>{macroData.fat.current}g / {macroData.fat.target}g</span>
-                            </div>
-                            <div className="w-full bg-violet-900/60 rounded-full h-2">
-                                <div className="bg-yellow-400 h-2 rounded-full" style={{ width: `${Math.min((macroData.fat.current / (macroData.fat.target || 1)) * 100, 100)}%` }}></div>
+                            <h3 className="text-violet-200 text-xs font-bold mb-6 tracking-widest uppercase">Today's Nutrition</h3>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+
+                                {/* Calories Ring */}
+                                <div className="bg-violet-900/40 border border-violet-400/10 p-4 rounded-xl flex flex-col items-center text-center">
+                                    <div className="relative w-24 h-24 flex items-center justify-center mb-3">
+                                        <svg className="w-full h-full transform -rotate-90">
+                                            <circle cx="48" cy="48" r="36" className="stroke-violet-800/80" strokeWidth="6" fill="transparent" />
+                                            <circle cx="48" cy="48" r="36" className="stroke-orange-400 transition-all duration-500" strokeWidth="6" fill="transparent" strokeDasharray={2 * Math.PI * 36} strokeDashoffset={2 * Math.PI * 36 - (Math.min((macroData.calories.current / (macroData.calories.target || 1)), 1) * (2 * Math.PI * 36))} strokeLinecap="round" />
+                                        </svg>
+                                        <span className="absolute text-xs font-bold text-orange-300">{Math.min(((macroData.calories.current / (macroData.calories.target || 1)) * 100), 100).toFixed(0)}%</span>
+                                    </div>
+                                    <span className="text-xs font-semibold block text-violet-200">Calories</span>
+                                    <span className="text-xs text-white mt-1 font-mono">{macroData.calories.current}/{macroData.calories.target}</span>
+                                </div>
+
+                                {/* Protein Ring */}
+                                <div className="bg-violet-900/40 border border-violet-400/10 p-4 rounded-xl flex flex-col items-center text-center">
+                                    <div className="relative w-24 h-24 flex items-center justify-center mb-3">
+                                        <svg className="w-full h-full transform -rotate-90">
+                                            <circle cx="48" cy="48" r="36" className="stroke-violet-800/80" strokeWidth="6" fill="transparent" />
+                                            <circle cx="48" cy="48" r="36" className="stroke-blue-400 transition-all duration-500" strokeWidth="6" fill="transparent" strokeDasharray={2 * Math.PI * 36} strokeDashoffset={2 * Math.PI * 36 - (Math.min((macroData.protein.current / (macroData.protein.target || 1)), 1) * (2 * Math.PI * 36))} strokeLinecap="round" />
+                                        </svg>
+                                        <span className="absolute text-xs font-bold text-blue-300">{Math.min(((macroData.protein.current / (macroData.protein.target || 1)) * 100), 100).toFixed(0)}%</span>
+                                    </div>
+                                    <span className="text-sm font-semibold block text-violet-200">Protein</span>
+                                    <span className="text-xs text-white mt-1 font-mono">{macroData.protein.current}g/{macroData.protein.target}g</span>
+                                </div>
+
+                                {/* Carbs Ring */}
+                                <div className="bg-violet-900/40 border border-violet-400/10 p-4 rounded-xl flex flex-col items-center text-center">
+                                    <div className="relative w-24 h-24 flex items-center justify-center mb-3">
+                                        <svg className="w-full h-full transform -rotate-90">
+                                            <circle cx="48" cy="48" r="36" className="stroke-violet-800/80" strokeWidth="6" fill="transparent" />
+                                            <circle cx="48" cy="48" r="36" className="stroke-green-400 transition-all duration-500" strokeWidth="6" fill="transparent" strokeDasharray={2 * Math.PI * 36} strokeDashoffset={2 * Math.PI * 36 - (Math.min((macroData.carbs.current / (macroData.carbs.target || 1)), 1) * (2 * Math.PI * 36))} strokeLinecap="round" />
+                                        </svg>
+                                        <span className="absolute text-xs font-bold text-green-300">{Math.min(((macroData.carbs.current / (macroData.carbs.target || 1)) * 100), 100).toFixed(0)}%</span>
+                                    </div>
+                                    <span className="text-sm font-semibold block text-violet-200">Carbs</span>
+                                    <span className="text-xs text-white mt-1 font-mono">{macroData.carbs.current}g/{macroData.carbs.target}g</span>
+                                </div>
+
+                                {/* Fat Ring */}
+                                <div className="bg-violet-900/40 border border-violet-400/10 p-4 rounded-xl flex flex-col items-center text-center">
+                                    <div className="relative w-24 h-24 flex items-center justify-center mb-3">
+                                        <svg className="w-full h-full transform -rotate-90">
+                                            <circle cx="48" cy="48" r="36" className="stroke-violet-800/80" strokeWidth="6" fill="transparent" />
+                                            <circle cx="48" cy="48" r="36" className="stroke-yellow-400 transition-all duration-500" strokeWidth="6" fill="transparent" strokeDasharray={2 * Math.PI * 36} strokeDashoffset={2 * Math.PI * 36 - (Math.min((macroData.fat.current / (macroData.fat.target || 1)), 1) * (2 * Math.PI * 36))} strokeLinecap="round" />
+                                        </svg>
+                                        <span className="absolute text-xs font-bold text-yellow-300">{Math.min(((macroData.fat.current / (macroData.fat.target || 1)) * 100), 100).toFixed(0)}%</span>
+                                    </div>
+                                    <span className="text-sm font-semibold block text-violet-200">Fat</span>
+                                    <span className="text-xs text-white mt-1 font-mono">{macroData.fat.current}g/{macroData.fat.target}g</span>
+                                </div>
+
                             </div>
                         </div>
                     </div>
+
+                    {/* BMI Visual Gauge Card */}
+                    <div className="bg-violet-950/30 rounded-2xl p-6 border border-violet-500/20 shadow-inner flex flex-col items-center justify-center text-center">
+                        <h3 className="text-violet-200 text-xs font-bold mb-2 tracking-widest uppercase self-start">Dynamic BMI Index</h3>
+
+                        {/* Semi-circle SVG Gauge Meter */}
+                        <div className="relative w-48 h-24 mt-4 overflow-hidden">
+                            <svg className="w-full h-full" viewBox="0 0 100 50">
+                                {/* Base track background color */}
+                                <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#4c1d95" strokeWidth="10" strokeLinecap="round" />
+
+                                {/* Yellow Arc - Underweight */}
+                                <path d="M 10 50 A 40 40 0 0 1 35 22" fill="none" stroke="#facc15" strokeWidth="10" />
+
+                                {/* Green Arc - Normal */}
+                                <path d="M 35 22 A 40 40 0 0 1 65 22" fill="none" stroke="#34d399" strokeWidth="10" />
+
+                                {/* Red Arc - Overweight & Obese */}
+                                <path d="M 65 22 A 40 40 0 0 1 90 50" fill="none" stroke="#f87171" strokeWidth="10" strokeLinecap="round" />
+
+                                {/* Meter Needle Pin - rotates based on formula input dynamically */}
+                                <g transform={`rotate(${getBmiNeedleRotation()}, 50, 50)`}>
+                                    <line x1="50" y1="50" x2="15" y2="50" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" />
+                                    <circle cx="50" cy="50" r="4" fill="#ffffff" />
+                                </g>
+                            </svg>
+                        </div>
+
+                        {/* Text and category outputs */}
+                        <div className="mt-3">
+                            <span className="text-4xl font-extrabold block font-mono">{bmi}</span>
+                            <span className={`text-sm font-bold block mt-1 ${getBmiCategory().color}`}>
+                                {getBmiCategory().text}
+                            </span>
+                        </div>
+                    </div>
+
                 </div>
 
-                {/* Weight Progress Bar */}
-                <div>
-                    <div className="flex justify-between text-sm mb-2 text-violet-200">
-                        <span>{progress}%</span>
+                {/* Cumulative Weight Goal Progress Bar */}
+                <div className="bg-violet-500/20 p-4 rounded-xl border border-violet-400/10">
+                    <div className="flex justify-between text-sm mb-2 text-violet-200 font-medium">
+                        <span>Weight Goal Progress: {progress}%</span>
                         <span>Weight Goal Progress</span>
                     </div>
-                    <div className="w-full bg-violet-800 rounded-full h-3">
+                    <div className="w-full bg-violet-950/50 rounded-full h-3 shadow-inner">
                         <div
-                            className="bg-white h-3 rounded-full transition-all duration-1000 ease-out"
+                            className="bg-white h-3 rounded-full transition-all duration-1000 ease-out shadow-sm"
                             style={{ width: `${progress}%` }}
                         ></div>
                     </div>
                 </div>
-            </div>
 
-            {/* Daily Tip Banner */}
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-10 flex items-start gap-4 shadow-sm">
-                <div className="bg-amber-100 p-3 rounded-full text-amber-500 shrink-0">
-                    <Lightbulb size={24} />
-                </div>
-                <div>
-                    <h3 className="font-bold text-amber-800 mb-1">Tip of the Day</h3>
-                    <p className="text-amber-700">{dailyTip}</p>
-                </div>
-            </div>
-
-            {/* Quick Actions Section */}
-            {/* Quick Actions Section */}
-            <div>
-                <div className="flex justify-between items-end mb-4 px-1">
-                    <h2 className="text-xl font-bold text-gray-800">Quick Actions</h2>
+                {/* Smart Remaining Summary Text calculated locally on client */}
+                <div className="border-t border-violet-400/30 pt-4 text-center md:text-left">
+                    <p className="text-lg font-light text-violet-100">
+                        You have <span className="font-bold text-orange-300">{remainingCalories}</span> calories and <span className="font-bold text-blue-300">{remainingProtein}g</span> of protein left to hit your daily goal!
+                    </p>
                 </div>
 
-                {/* שינוי ל- grid-cols-5 במסכים גדולים, והקטנת הגאפ ל-3 */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-10">
-                    {quickActions.map((action, index) => {
-                        const Icon = action.icon;
-                        return (
-                            <div
-                                key={index}
-                                onClick={action.onClick}
-                                // הקטנתי את ה-padding (p-4 במקום p-6) כדי שישתלב טוב בשורה אחת
-                                className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer relative group hover:-translate-y-1"
-                            >
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className={`p-2.5 rounded-xl ${action.bgColor} ${action.color}`}>
-                                        <Icon size={22} />
-                                    </div>
-                                    <ArrowRight size={18} className="text-gray-300 group-hover:text-gray-800 transition-colors" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-gray-800 text-base">{action.title}</h3>
-                                    <p className="text-gray-500 text-xs mt-0.5">{action.subtitle}</p>
-                                </div>
-                            </div>
-                        );
-                    })}
+                {/* Clean Embedded Tip of the Day Box */}
+                <div className="bg-white/10 backdrop-blur-sm border border-white/10 p-4 rounded-2xl flex items-start gap-4 mt-auto">
+                    <div className="bg-white/10 p-2.5 rounded-xl text-amber-300 shrink-0">
+                        <Lightbulb size={22} />
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-white text-sm mb-0.5">Tip of the Day</h4>
+                        <p className="text-violet-100 text-sm leading-relaxed">{dailyTip}</p>
+                    </div>
                 </div>
+
             </div>
 
-            {/* Logout Button */}
-            <div className="flex justify-end border-t pt-6 mt-8 mb-8">
-                <button
-                    onClick={handleLogout}
-                    className="px-6 py-2 bg-gray-100 text-gray-600 font-semibold rounded-lg hover:bg-red-500 hover:text-white transition-colors"
-                >
-                    Logout
-                </button>
-            </div>
         </div>
     );
 };

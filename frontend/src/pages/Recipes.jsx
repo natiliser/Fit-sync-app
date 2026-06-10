@@ -32,9 +32,7 @@ const Recipes = () => {
     return (
         <div className="max-w-6xl mx-auto mt-10 p-4 font-sans">
             <div className="mb-8 text-center">
-                <button onClick={() => navigate('/home')} className="flex items-center gap-2 text-violet-600 font-semibold hover:text-violet-800 transition-colors">
-                    <ArrowLeft size={20} /> Dashboard
-                </button>
+                
                 <h1 className="text-4xl font-bold text-gray-800 flex items-center justify-center gap-3 mb-3">
                     <ChefHat className="text-violet-600" size={40} />
                     Healthy Recipes

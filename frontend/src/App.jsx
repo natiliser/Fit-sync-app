@@ -16,6 +16,7 @@ import AdminRoute from './components/AdminRoute';
 import AdminRecipes from './components/AdminRecipes';
 import AdminDashboard from './components/AdminDashboard';
 
+import Layout from './pages/Layout';
 
 function App() {
 
@@ -24,26 +25,28 @@ function App() {
   return (
     <GoogleOAuthProvider clientId={clientId}>
       <Router>
-        <div className="min-h-screen bg-gray-50 py-10">
+        <div className="min-h-screen bg-gray-50">
           <Routes>
             <Route path="/" element={<Navigate to="/login" />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/home" element={<Home />} />
+            <Route path="/home" element={<Layout><Home /></Layout>} />
             <Route path="/profile-setup" element={<ProfileSetup />} />
-            <Route path="/meals-diary" element={<MealsDiary />} />
-            <Route path='/measurements' element={<Measurements />} />
-            <Route path="/workouts" element={<Workouts />} />
-            <Route path="/progress" element={<Progress />} />
-            <Route path="/recipes" element={<Recipes />} />
+            <Route path="/meals-diary" element={<Layout><MealsDiary /></Layout>} />
+            <Route path='/measurements' element={<Layout><Measurements /></Layout>} />
+            <Route path="/workouts" element={<Layout><Workouts /></Layout>} />
+            <Route path="/progress" element={<Layout><Progress /></Layout>} />
+            <Route path="/recipes" element={<Layout><Recipes /></Layout>} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
             {/* נתיב מוגן למנהלים בלבד! */}
             <Route
               path="/admin" element={
+                <Layout>
                 <AdminRoute>
                   <AdminDashboard />
                 </AdminRoute>
+                </Layout>
               }
             />
             {/* נתיב מוגן למנהלים בלבד! */}

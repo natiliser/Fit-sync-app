@@ -101,9 +101,7 @@ const Workouts = () => {
         <div className="max-w-4xl mx-auto mt-10 p-4 font-sans">
             
             <div className="flex justify-between items-center mb-8">
-                <button onClick={() => navigate('/home')} className="flex items-center gap-2 text-violet-600 font-semibold hover:text-violet-800 transition-colors">
-                    <ArrowLeft size={20} /> Dashboard
-                </button>
+                
                 <div>
                     <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
                         <Dumbbell className="text-violet-600" size={32} />
