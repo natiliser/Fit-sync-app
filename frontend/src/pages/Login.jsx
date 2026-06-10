@@ -127,6 +127,14 @@ const navigate = useNavigate();
                 </Link>
             </div>
 
+            {/* Forgot password */}
+            <div className="text-center mt-4 text-sm text-gray-600">
+                Forgot the password?{' '}
+                <Link to="/forgot-password" className="text-blue-600 font-bold hover:underline">
+                    Reset password
+                </Link>
+            </div>
+
             {message && (
                 <p className={`mt-4 text-center font-semibold ${message.includes('successful') ? 'text-green-600' : 'text-red-500'}`}>
                     {message}

@@ -2,6 +2,9 @@ const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 const User = require('../models/userModel');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
 
 // 1. Register a new user
 const register = async (req, res) => {
@@ -152,11 +155,101 @@ const getUserProfile = async (req, res) => {
     }
 };
 
+const forgotPassword = async (req,res) => {
+    try {
+        const { email } = req.body;
+
+        // find email by user
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "There is no user with this email" });
+        }
+
+        // create special token
+        const resetToken = crypto.randomBytes(20).toString('hex');
+
+        // saving the token for 15 minutes
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+        await user.save();
+
+        // config nodemailer
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            }
+        });
+
+        // 5. link for reset password 
+        const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+
+        // 6. send email for the user
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: 'FitSync - reset passsword',
+            html: `
+                <h1>FitSync website - reset password</h1>
+                <p>You wanted to reset password , please click on the link to choose new password</p>
+                <a href="${resetUrl}" target="_blank">Click here for reset password/a>
+                <p>The link is availible for 15 minutes</p>
+                <p>If you didnt ask for reset password, please ignore this mail</p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        res.status(200).json({ message: "Email for reset password successfully sended" });
+
+    } catch (error) {
+        console.error("Forgot Password Error:", error);
+        res.status(500).json({ message: "Server error, please try again later." });
+    }
+};
+
+const resetPassword = async (req,res) => {
+    try {
+        const { token } = req.params;
+        const { password } = req.body;
+
+        // 1. חיפוש משתמש לפי טוקן וזמן תפוגה שעדיין לא עבר
+        const user = await User.findOne({ 
+            resetPasswordToken: token, 
+            resetPasswordExpire: { $gt: Date.now() } 
+        });
+
+        if (!user) {
+            return res.status(400).json({ message: "The link is unvalible or expired" });
+        }
+
+        user.password = password;
+
+        // 3. ניקוי הטוקן מה-Database כדי שלא יהיה ניתן להשתמש בו שוב
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+        await user.save();
+
+        res.status(200).json({ message: "Password updated" });
+
+    } catch (error) {
+        console.error("Reset Password Error:", error);
+        res.status(500).json({ message: "Server error, please try again" });
+    }
+}
+
+
+
+
+
 
 module.exports = {
     register,
     login,
     googleAuth,
     updateProfile,
-    getUserProfile
+    getUserProfile,
+    forgotPassword,
+    resetPassword
 };

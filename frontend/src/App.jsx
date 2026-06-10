@@ -9,9 +9,13 @@ import Measurements from './pages/Measurements'
 import Workouts from './pages/Workouts';
 import Progress from './pages/Progress';
 import Recipes from './pages/Recipes'
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword'
+
 import AdminRoute from './components/AdminRoute';
 import AdminRecipes from './components/AdminRecipes';
 import AdminDashboard from './components/AdminDashboard';
+
 
 function App() {
 
@@ -32,6 +36,8 @@ function App() {
             <Route path="/workouts" element={<Workouts />} />
             <Route path="/progress" element={<Progress />} />
             <Route path="/recipes" element={<Recipes />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
             {/* נתיב מוגן למנהלים בלבד! */}
             <Route
               path="/admin" element={
