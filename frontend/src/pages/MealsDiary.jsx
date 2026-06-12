@@ -13,7 +13,7 @@ const MealsDiary = () => {
     // Meal Builder States (The "Cart")
     const [addedItems, setAddedItems] = useState([]);
     const [mealType, setMealType] = useState(''); // Changed to empty string - user MUST select
-    
+
     // Form Inputs
     const [basicFoods, setBasicFoods] = useState([]);
     const [entryMode, setEntryMode] = useState('basic');
@@ -64,7 +64,7 @@ const MealsDiary = () => {
         e.preventDefault();
         const newErrors = {};
         const parsedAmount = parseFloat(amount);
-        
+
         if (!parsedAmount || parsedAmount <= 0) {
             newErrors.amount = "Amount must be > 0";
         }
@@ -95,14 +95,16 @@ const MealsDiary = () => {
             });
 
             if (Object.keys(newErrors).length === 0) {
+
                 newItem = {
                     tempId: Date.now(),
                     name: manualData.name,
                     quantity: parsedAmount,
-                    calories: parseFloat(manualData.calories),
-                    protein: parseFloat(manualData.protein),
-                    carbs: parseFloat(manualData.carbs),
-                    fat: parseFloat(manualData.fat)
+
+                    calories: Math.round(parseFloat(manualData.calories) * multiplier),
+                    protein: Math.round(parseFloat(manualData.protein) * multiplier),
+                    carbs: Math.round(parseFloat(manualData.carbs) * multiplier),
+                    fat: Math.round(parseFloat(manualData.fat) * multiplier)
                 };
             }
         }
@@ -125,7 +127,7 @@ const MealsDiary = () => {
 
     const handleSaveMealToDB = async () => {
         if (addedItems.length === 0) return;
-        
+
         // Force the user to select a meal type
         if (!mealType) {
             setErrors({ submit: "Please select a meal type (Breakfast, Lunch, etc.) before saving." });
@@ -134,7 +136,7 @@ const MealsDiary = () => {
 
         try {
             const token = localStorage.getItem('token');
-            
+
             const finalPayload = addedItems.map(item => ({
                 ...item,
                 mealType: mealType
@@ -143,13 +145,13 @@ const MealsDiary = () => {
             const res = await axios.post('http://localhost:5000/meals', finalPayload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            
+
             setMealsLog([...res.data.meals, ...mealsLog]);
             setAddedItems([]);
             setMealType(''); // Reset choice for the next time
             setIsAdding(false);
             setErrors({});
-            
+
         } catch (error) {
             console.error("Error saving meal:", error);
             setErrors({ submit: "Failed to save meal to server." });
@@ -172,7 +174,7 @@ const MealsDiary = () => {
     return (
         <div className="max-w-4xl mx-auto mt-10 p-4 font-sans">
             <div className="flex justify-between items-center mb-6">
-                
+
                 <button onClick={() => setIsAdding(!isAdding)} className="flex items-center gap-2 bg-violet-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-violet-700 transition-colors">
                     {isAdding ? 'Cancel Building' : <><Plus size={20} /> Build Meal</>}
                 </button>
@@ -197,10 +199,10 @@ const MealsDiary = () => {
                                         onClick={() => { setMealType(type); setErrors({ ...errors, submit: null }); }}
                                         className={`flex-1 py-2 flex items-center justify-center gap-2 rounded-lg font-semibold transition-colors text-sm ${mealType === type ? 'bg-white shadow text-violet-700 border border-violet-200' : 'text-gray-500 hover:bg-gray-100 border border-transparent'}`}
                                     >
-                                        {type === 'Breakfast' && <Coffee size={16}/>}
-                                        {type === 'Lunch' && <Sun size={16}/>}
-                                        {type === 'Dinner' && <Moon size={16}/>}
-                                        {type === 'Snack' && <Apple size={16}/>}
+                                        {type === 'Breakfast' && <Coffee size={16} />}
+                                        {type === 'Lunch' && <Sun size={16} />}
+                                        {type === 'Dinner' && <Moon size={16} />}
+                                        {type === 'Snack' && <Apple size={16} />}
                                         {type}
                                     </button>
                                 ))}
@@ -227,28 +229,51 @@ const MealsDiary = () => {
                                 ) : (
                                     <div className="flex-1 w-full">
                                         <label className="block text-xs font-semibold text-gray-600 mb-1">Food Name</label>
-                                        <input type="text" name="name" value={manualData.name} onChange={handleManualChange} className="w-full p-2.5 bg-white border border-gray-200 rounded-lg" placeholder="Name" />
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            value={manualData.name}
+                                            onChange={handleManualChange}
+                                            className="w-full p-2.5 bg-white border border-gray-200 rounded-lg"
+                                            placeholder="Name"
+                                        />
                                     </div>
                                 )}
-                                
+
                                 <div className="w-full md:w-32">
                                     <label className="block text-xs font-semibold text-gray-600 mb-1">Amount (g)</label>
-                                    <input type="number" value={amount} onChange={handleAmountChange} className="w-full p-2.5 bg-white border border-gray-200 rounded-lg" placeholder="100" />
+                                    <input
+                                        type="number"
+                                        value={amount}
+                                        onChange={handleAmountChange}
+                                        className="w-full p-2.5 bg-white border border-gray-200 rounded-lg"
+                                        placeholder="100"
+                                    />
                                 </div>
 
                                 <button onClick={handleAddItem} className="w-full md:w-auto px-6 py-2.5 bg-gray-800 text-white font-bold rounded-lg hover:bg-gray-900 transition-colors">
-                                    Add 
+                                    Add
                                 </button>
                             </div>
-                            
+
                             {entryMode === 'manual' && (
-                                <div className="grid grid-cols-4 gap-2 mt-3">
-                                    {['calories', 'protein', 'carbs', 'fat'].map(m => (
-                                        <input key={m} type="number" name={m} value={manualData[m]} onChange={handleManualChange} className="w-full p-2 bg-white border border-gray-200 rounded-lg text-sm" placeholder={m} />
-                                    ))}
+                                <div className="mt-3">
+                                    <div className="grid grid-cols-4 gap-2">
+                                        {['calories', 'protein', 'carbs', 'fat'].map(m => (
+                                            <input
+                                                key={m}
+                                                type="number"
+                                                name={m}
+                                                value={manualData[m]}
+                                                onChange={handleManualChange}
+                                                className="w-full p-2 bg-white border border-gray-200 rounded-lg text-sm"
+                                                placeholder={`Total ${m}`}
+                                            />
+                                        ))}
+                                    </div>
                                 </div>
                             )}
-                            
+
                             {Object.values(errors).map((err, idx) => err && err !== errors.submit && <p key={idx} className="text-red-500 text-xs mt-2">{err}</p>)}
                         </div>
 
@@ -265,7 +290,7 @@ const MealsDiary = () => {
                                             </div>
                                             <div className="flex items-center gap-4">
                                                 <span className="text-sm font-bold text-violet-600">{item.calories} kcal</span>
-                                                <button onClick={() => removeItemFromMeal(item.tempId)} className="text-red-400 hover:text-red-600"><Trash2 size={18}/></button>
+                                                <button onClick={() => removeItemFromMeal(item.tempId)} className="text-red-400 hover:text-red-600"><Trash2 size={18} /></button>
                                             </div>
                                         </div>
                                     ))}
@@ -287,7 +312,7 @@ const MealsDiary = () => {
                         {errors.submit && <div className="mt-4 mb-4 p-3 bg-red-50 text-red-600 rounded-lg border border-red-100 text-center font-semibold">{errors.submit}</div>}
 
                         <div className="flex justify-end pt-4 border-t border-gray-100">
-                            <button 
+                            <button
                                 onClick={handleSaveMealToDB}
                                 disabled={addedItems.length === 0}
                                 className={`flex items-center gap-2 px-8 py-3 font-bold rounded-lg transition-colors ${addedItems.length > 0 ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-md' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
@@ -303,7 +328,7 @@ const MealsDiary = () => {
                 <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                     <Calendar className="text-violet-500" size={24} /> Food Diary Log
                 </h2>
-                
+
                 {mealsLog.length === 0 ? (
                     <div className="text-center text-gray-500 py-10">
                         <p>No meals logged yet. Click "Build Meal" to start tracking!</p>
@@ -318,7 +343,7 @@ const MealsDiary = () => {
                                         <p className="text-sm text-gray-500 flex items-center gap-2">
                                             <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded text-xs font-semibold">{meal.mealType}</span>
                                             <span className="flex items-center gap-1"><Clock size={12} /> {formatDate(meal.createdAt || meal.date)}</span>
-                                            <span className="mx-1">•</span> 
+                                            <span className="mx-1">•</span>
                                             {meal.quantity}g
                                         </p>
                                     </div>

@@ -10,7 +10,6 @@ const AdminRoute = ({ children }) => {
 
     try {
         const decodedToken = jwtDecode(token);
-        console.log("My Decoded Token:", decodedToken);
         if (decodedToken.role !== 'admin') {
             return <Navigate to="/home" replace />;
         }
