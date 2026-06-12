@@ -6,7 +6,7 @@ import axios from 'axios';
 const ProfileSetup = () => {
     const navigate = useNavigate();
 
-    
+
     const [formData, setFormData] = useState({
         age: '',
         gender: 'male',
@@ -22,7 +22,6 @@ const ProfileSetup = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        
         const { gender, age, height, startWeight, goalWeight } = formData;
         const weight = parseFloat(startWeight);
         const h = parseFloat(height);
@@ -30,17 +29,17 @@ const ProfileSetup = () => {
         const isMale = gender === 'male';
         const goal = parseFloat(goalWeight);
 
- 
+
         let bmr = isMale
             ? (10 * weight) + (6.25 * h) - (5 * a) + 5
             : (10 * weight) + (6.25 * h) - (5 * a) - 161;
 
         let tdee = bmr * 1.55;
 
-    
+
         let targetCalories = tdee;
         if (goal < weight) {
-            targetCalories -= 400; 
+            targetCalories -= 400;
         } else if (goal > weight) {
             targetCalories += 300;
         }
@@ -68,13 +67,10 @@ const ProfileSetup = () => {
                 }
             });
 
-            // מעבר לעמוד הבית אחרי שמירה מוצלחת
             navigate('/home');
 
         } catch (error) {
-            // זה ידפיס לנו בדיוק מה השרת אמר
-            console.error("Full error response:", error.response?.data);
-            alert(`Error saving profile: ${error.response?.data?.msg || "Check server logs"}`);
+            console.error("Error submitting form", error);
         }
     };
 
@@ -87,7 +83,7 @@ const ProfileSetup = () => {
 
             <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden relative">
 
-                {/* פס עיצוב עליון */}
+                {/* Style on top */}
                 <div className="h-2 bg-violet-500 w-full"></div>
 
                 <div className="p-8">
@@ -97,7 +93,7 @@ const ProfileSetup = () => {
                     </div>
 
                     <div className="space-y-6">
-                        {/* שורת מגדר וגיל */}
+                        {/* Gender & Age */}
                         <div className="grid grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-600 mb-2">Gender</label>
@@ -113,33 +109,79 @@ const ProfileSetup = () => {
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-600 mb-2">Age</label>
-                                <input type="number" name="age" value={formData.age} onChange={handleChange} placeholder="e.g. 30" required
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-shadow" />
+                                <input
+                                    type="number"
+                                    name="age"
+                                    value={formData.age}
+                                    onChange={handleChange}
+                                    placeholder="e.g. 30"
+                                    required
+                                    min="14"
+                                    max="120"
+                                    onInvalid={(e) => e.target.setCustomValidity('You must be between 14-120 years old to use FitSync')}
+                                    onInput={(e) => e.target.setCustomValidity('')}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-shadow"
+                                />
                             </div>
                         </div>
 
-                        {/* שורת גובה */}
+                        {/* height */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-600 mb-2">Height (cm)</label>
-                            <input type="number" name="height" value={formData.height} onChange={handleChange} placeholder="e.g. 175" required
-                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-shadow" />
+                            <input
+                                type="number"
+                                name="height"
+                                value={formData.height}
+                                onChange={handleChange}
+                                placeholder="e.g. 175"
+                                required
+                                min="120"
+                                max="250"
+                                onInvalid={(e) => e.target.setCustomValidity('Height must be between 120-250 cm')}
+                                onInput={(e) => e.target.setCustomValidity('')}
+                                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-shadow"
+                            />
                         </div>
 
-                        {/* שורת משקלים */}
+                        {/* Weight*/}
                         <div className="grid grid-cols-2 gap-6 pt-4 border-t border-gray-100">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-600 mb-2 flex items-center gap-1">
                                     <Scale size={16} className="text-violet-400" /> Current Weight (kg)
                                 </label>
-                                <input type="number" step="0.1" name="startWeight" value={formData.startWeight} onChange={handleChange} placeholder="e.g. 80.5" required
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-shadow" />
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    name="startWeight"
+                                    value={formData.startWeight}
+                                    onChange={handleChange}
+                                    placeholder="e.g. 80.5"
+                                    required
+                                    min="30"
+                                    max="200"
+                                    onInvalid={(e) => e.target.setCustomValidity('Weight must be between 30kg - 200kg')}
+                                    onInput={(e) => e.target.setCustomValidity('')}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-shadow"
+                                />
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-600 mb-2 flex items-center gap-1">
                                     <Target size={16} className="text-violet-400" /> Goal Weight (kg)
                                 </label>
-                                <input type="number" step="0.1" name="goalWeight" value={formData.goalWeight} onChange={handleChange} placeholder="e.g. 75.0" required
-                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-shadow" />
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    name="goalWeight"
+                                    value={formData.goalWeight}
+                                    onChange={handleChange}
+                                    placeholder="e.g. 75.0"
+                                    required
+                                    min="30"
+                                    max="200"
+                                    onInvalid={(e) => e.target.setCustomValidity('Weight must be between 30kg - 200kg')}
+                                    onInput={(e) => e.target.setCustomValidity('')}
+                                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-shadow"
+                                />
                             </div>
                         </div>
                     </div>

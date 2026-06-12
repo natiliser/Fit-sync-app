@@ -95,7 +95,7 @@ const AdminFoodItems = () => {
         try {
             const token = localStorage.getItem('token');
             // ודא שיש לך פונקציית מחק (DELETE) מוגדרת בראוטר של ה-Food Items
-            await axios.delete(`http://localhost:5000/food-items`, {
+            await axios.delete(`http://localhost:5000/food-items/: id`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 

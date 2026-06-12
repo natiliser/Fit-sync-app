@@ -9,7 +9,7 @@ const MeasurementSchema = new mongoose.Schema({
     weight: {
         type: Number,
         required: [true, 'Please provide your current weight'],
-        min: [20, 'Weight must be realistic']
+        min: [30, 'Weight must be realistic at least 30kg)' ]
     },
     //מוֹתן
     waist: { 

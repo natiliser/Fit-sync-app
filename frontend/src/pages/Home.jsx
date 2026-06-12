@@ -7,7 +7,7 @@ import axios from 'axios';
 const Home = () => {
     const navigate = useNavigate();
 
-    // Initialize state with default values until the server responds
+
     const [weightData, setWeightData] = useState({
         currentWeight: 0,
         goalWeight: 0,
@@ -21,7 +21,6 @@ const Home = () => {
         fat: { current: 0, target: 0 }
     });
 
-    // Default fallback height in cm (will be overwritten by DB)
     const [userHeight, setUserHeight] = useState(175);
 
     useEffect(() => {
@@ -242,10 +241,29 @@ const Home = () => {
                                 <div className="bg-violet-900/40 border border-violet-400/10 p-4 rounded-xl flex flex-col items-center text-center">
                                     <div className="relative w-24 h-24 flex items-center justify-center mb-3">
                                         <svg className="w-full h-full transform -rotate-90">
-                                            <circle cx="48" cy="48" r="36" className="stroke-violet-800/80" strokeWidth="6" fill="transparent" />
-                                            <circle cx="48" cy="48" r="36" className="stroke-orange-400 transition-all duration-500" strokeWidth="6" fill="transparent" strokeDasharray={2 * Math.PI * 36} strokeDashoffset={2 * Math.PI * 36 - (Math.min((macroData.calories.current / (macroData.calories.target || 1)), 1) * (2 * Math.PI * 36))} strokeLinecap="round" />
+                                            <circle
+                                                cx="48"
+                                                cy="48"
+                                                r="36"
+                                                className="stroke-violet-800/80"
+                                                strokeWidth="6"
+                                                fill="transparent"
+                                            />
+                                            <circle
+                                                cx="48"
+                                                cy="48"
+                                                r="36"
+                                                className="stroke-orange-400 transition-all duration-500"
+                                                strokeWidth="6"
+                                                fill="transparent"
+                                                strokeDasharray={2 * Math.PI * 36}
+                                                strokeDashoffset={2 * Math.PI * 36 - (Math.min((macroData.calories.current / (macroData.calories.target || 1)), 1) * (2 * Math.PI * 36))}
+                                                strokeLinecap="round" />
                                         </svg>
-                                        <span className="absolute text-xs font-bold text-orange-300">{Math.min(((macroData.calories.current / (macroData.calories.target || 1)) * 100), 100).toFixed(0)}%</span>
+                                        <span className="absolute text-xs font-bold text-orange-300">
+                                            {Math.min(((macroData.calories.current / (macroData.calories.target || 1)) * 100), 100).toFixed(0)}
+                                            %
+                                        </span>
                                     </div>
                                     <span className="text-xs font-semibold block text-violet-200">Calories</span>
                                     <span className="text-xs text-white mt-1 font-mono">{macroData.calories.current}/{macroData.calories.target}</span>
@@ -255,8 +273,21 @@ const Home = () => {
                                 <div className="bg-violet-900/40 border border-violet-400/10 p-4 rounded-xl flex flex-col items-center text-center">
                                     <div className="relative w-24 h-24 flex items-center justify-center mb-3">
                                         <svg className="w-full h-full transform -rotate-90">
-                                            <circle cx="48" cy="48" r="36" className="stroke-violet-800/80" strokeWidth="6" fill="transparent" />
-                                            <circle cx="48" cy="48" r="36" className="stroke-blue-400 transition-all duration-500" strokeWidth="6" fill="transparent" strokeDasharray={2 * Math.PI * 36} strokeDashoffset={2 * Math.PI * 36 - (Math.min((macroData.protein.current / (macroData.protein.target || 1)), 1) * (2 * Math.PI * 36))} strokeLinecap="round" />
+                                            <circle 
+                                            cx="48" 
+                                            cy="48" 
+                                            r="36" 
+                                            className="stroke-violet-800/80" 
+                                            strokeWidth="6" fill="transparent"
+                                            />
+                                            <circle 
+                                            cx="48" 
+                                            cy="48" 
+                                            r="36" 
+                                            className="stroke-blue-400 transition-all duration-500" 
+                                            strokeWidth="6" fill="transparent" strokeDasharray={2 * Math.PI * 36} 
+                                            strokeDashoffset={2 * Math.PI * 36 - (Math.min((macroData.protein.current / (macroData.protein.target || 1)), 1) * (2 * Math.PI * 36))} 
+                                            strokeLinecap="round" />
                                         </svg>
                                         <span className="absolute text-xs font-bold text-blue-300">{Math.min(((macroData.protein.current / (macroData.protein.target || 1)) * 100), 100).toFixed(0)}%</span>
                                     </div>
@@ -268,8 +299,22 @@ const Home = () => {
                                 <div className="bg-violet-900/40 border border-violet-400/10 p-4 rounded-xl flex flex-col items-center text-center">
                                     <div className="relative w-24 h-24 flex items-center justify-center mb-3">
                                         <svg className="w-full h-full transform -rotate-90">
-                                            <circle cx="48" cy="48" r="36" className="stroke-violet-800/80" strokeWidth="6" fill="transparent" />
-                                            <circle cx="48" cy="48" r="36" className="stroke-green-400 transition-all duration-500" strokeWidth="6" fill="transparent" strokeDasharray={2 * Math.PI * 36} strokeDashoffset={2 * Math.PI * 36 - (Math.min((macroData.carbs.current / (macroData.carbs.target || 1)), 1) * (2 * Math.PI * 36))} strokeLinecap="round" />
+                                            <circle 
+                                            cx="48" 
+                                            cy="48" 
+                                            r="36" 
+                                            className="stroke-violet-800/80" 
+                                            strokeWidth="6" 
+                                            fill="transparent"
+                                             />
+                                            <circle 
+                                            cx="48" 
+                                            cy="48" 
+                                            r="36" 
+                                            className="stroke-green-400 transition-all duration-500" 
+                                            strokeWidth="6" fill="transparent" 
+                                            strokeDasharray={2 * Math.PI * 36} strokeDashoffset={2 * Math.PI * 36 - (Math.min((macroData.carbs.current / (macroData.carbs.target || 1)), 1) * (2 * Math.PI * 36))} 
+                                            strokeLinecap="round" />
                                         </svg>
                                         <span className="absolute text-xs font-bold text-green-300">{Math.min(((macroData.carbs.current / (macroData.carbs.target || 1)) * 100), 100).toFixed(0)}%</span>
                                     </div>
@@ -281,8 +326,24 @@ const Home = () => {
                                 <div className="bg-violet-900/40 border border-violet-400/10 p-4 rounded-xl flex flex-col items-center text-center">
                                     <div className="relative w-24 h-24 flex items-center justify-center mb-3">
                                         <svg className="w-full h-full transform -rotate-90">
-                                            <circle cx="48" cy="48" r="36" className="stroke-violet-800/80" strokeWidth="6" fill="transparent" />
-                                            <circle cx="48" cy="48" r="36" className="stroke-yellow-400 transition-all duration-500" strokeWidth="6" fill="transparent" strokeDasharray={2 * Math.PI * 36} strokeDashoffset={2 * Math.PI * 36 - (Math.min((macroData.fat.current / (macroData.fat.target || 1)), 1) * (2 * Math.PI * 36))} strokeLinecap="round" />
+                                            <circle 
+                                            cx="48" 
+                                            cy="48" 
+                                            r="36" 
+                                            className="stroke-violet-800/80" 
+                                            strokeWidth="6" 
+                                            fill="transparent"
+                                             />
+                                            <circle 
+                                            cx="48" 
+                                            cy="48" 
+                                            r="36" 
+                                            className="stroke-yellow-400 transition-all duration-500" 
+                                            strokeWidth="6" 
+                                            fill="transparent" 
+                                            strokeDasharray={2 * Math.PI * 36} 
+                                            strokeDashoffset={2 * Math.PI * 36 - (Math.min((macroData.fat.current / (macroData.fat.target || 1)), 1) * (2 * Math.PI * 36))} 
+                                            strokeLinecap="round" />
                                         </svg>
                                         <span className="absolute text-xs font-bold text-yellow-300">{Math.min(((macroData.fat.current / (macroData.fat.target || 1)) * 100), 100).toFixed(0)}%</span>
                                     </div>
