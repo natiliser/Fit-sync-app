@@ -35,53 +35,88 @@ const AdminRecipes = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+    e.preventDefault();
+    
+    // המרת הנתונים למספרים
+    const cals = parseFloat(formData.calories) || 0;
+    const prot = parseFloat(formData.protein) || 0;
+    const carb = parseFloat(formData.carbs) || 0;
+    const fat = parseFloat(formData.fat) || 0;
+
+    // 1. וולידציה בסיסית - שם חובה
+    if (!formData.name.trim()) {
+        setErrors({ general: "Recipe name is required." });
+        return;
+    }
+
+    // 2. חסימת ערכים לא הגיוניים (פחות מ-5 קלוריות זה לא אוכל אמיתי)
+    if (cals < 5) {
+        setErrors({ general: "Calories must be at least 5." });
+        return;
+    }
+
+    // 3. בדיקת שפיות מתמטית
+    const calculatedCals = (prot * 4) + (carb * 4) + (fat * 9);
+    const diff = Math.abs(cals - calculatedCals);
+    
+    // כאן הקסם: 
+    // חוסמים אם ההפרש גדול מ-7 (סטייה קטנה מאוד) 
+    // או שהסטייה היחסית גדולה מ-25%
+    const isRelativelyOff = calculatedCals > 0 && (diff / calculatedCals) > 0.25; 
+    const isAbsolutelyOff = diff > 7; 
+
+    if (cals > 0 && (isRelativelyOff || isAbsolutelyOff)) {
+        setErrors({ general: `Math error: You entered ${cals} kcal, but the macros equate to ~${Math.round(calculatedCals)} kcal.` });
+        return;
+    }
+
+    // 4. חסימת "1 בכל השדות" (מוודאים שיש ערך תזונתי משמעותי)
+    if ((prot + carb + fat) < 1) {
+        setErrors({ general: "Please specify at least 1g of macros." });
+        return;
+    }
+
+    // שליחה לשרת
+    try {
+        const token = localStorage.getItem('token');
+        const res = await axios.post('http://localhost:5000/recipes', formData, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        setSuccessMsg("Recipe published successfully!");
+        setRecipes([res.data.recipe, ...recipes]);
         
-        // וולידציה מחמירה
-        const calories = parseFloat(formData.calories);
-        if (!formData.name.trim() || isNaN(calories) || calories < 0 || calories > 2000) {
-            setErrors({ general: "Invalid Name or Calories (Max 2000)" });
-            return;
-        }
-
-        try {
-            const token = localStorage.getItem('token');
-            const res = await axios.post('http://localhost:5000/recipes', formData, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            setSuccessMsg(res.data.msg);
-            setRecipes([res.data.recipe, ...recipes]);
-            
-            setFormData({ 
-                name: '', category: 'Breakfast', ingredients: '', 
-                calories: '', protein: '', carbs: '', fat: '', image: '' 
-            });
-            setIsAdding(false);
-            setTimeout(() => setSuccessMsg(''), 3000);
-        } catch (error) {
-            console.error("Error adding recipe:", error);
-            setErrors({ general: error.response?.data?.msg || "Error saving recipe" });
-        }
-    };
+        setFormData({ 
+            name: '', category: 'Breakfast', ingredients: '', 
+            calories: '', protein: '', carbs: '', fat: '', image: '' 
+        });
+        setIsAdding(false);
+        setErrors({});
+        setTimeout(() => setSuccessMsg(''), 3000);
+    } catch (error) {
+        console.error("Error adding recipe:", error);
+        setErrors({ general: error.response?.data?.msg || "Error saving recipe" });
+    }
+};
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure?")) return;
+        if (!window.confirm("Are you sure you want to delete this recipe?")) return;
 
         try {
             const token = localStorage.getItem('token');
             await axios.delete(`http://localhost:5000/recipes/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+
             setRecipes(recipes.filter(recipe => recipe._id !== id));
         } catch (error) {
             console.error("Error deleting recipe:", error);
-            alert("Error deleting recipe.");
+            alert("Error deleting recipe. Check console for details.");
         }
     };
 
     return (
-        <div className="max-w-5xl mx-auto mt-10 p-4 font-sans" dir="ltr">
+        <div className="max-w-6xl mx-auto mt-10 p-4 font-sans" dir="ltr">
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
@@ -90,7 +125,7 @@ const AdminRecipes = () => {
                 </div>
                 <button 
                     onClick={() => setIsAdding(!isAdding)}
-                    className="bg-violet-600 text-white px-5 py-2 rounded-xl flex items-center gap-2 hover:bg-violet-700 transition-colors shadow-sm"
+                    className="bg-violet-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-violet-700 transition-colors shadow-sm"
                 >
                     <PlusCircle size={20} /> {isAdding ? 'Cancel' : 'Add New Recipe'}
                 </button>
@@ -106,52 +141,75 @@ const AdminRecipes = () => {
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Recipe Name</label>
                             <input type="text" name="name" value={formData.name} onChange={handleChange} required
-                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500" />
+                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none" />
                         </div>
-
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
                             <select name="category" value={formData.category} onChange={handleChange}
-                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500">
+                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none">
                                 <option value="Breakfast">Breakfast</option>
                                 <option value="Lunch">Lunch</option>
                                 <option value="Dinner">Dinner</option>
                                 <option value="Snacks">Snacks</option>
                             </select>
                         </div>
-
-                        {/* שדות עם וולידציה: מינימום 0, מקסימום 100 למאקרו, step="any" למספרים עשרוניים */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Calories</label>
-                            <input type="number" name="calories" value={formData.calories} onChange={handleChange} min="0" max="2000" step="any" required
-                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500" />
+                            <input 
+                            type="number" 
+                            name="calories" 
+                            value={formData.calories} 
+                            onChange={handleChange} 
+                            min="1" 
+                            max="2000" 
+                            step="any" 
+                            required
+                            className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none" 
+                            />
                         </div>
-
                         <div className="grid grid-cols-3 gap-2">
                             {['protein', 'carbs', 'fat'].map(f => (
                                 <div key={f}>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2 capitalize">{f} (g)</label>
-                                    <input type="number" name={f} value={formData[f]} onChange={handleChange} min="0" max="100" step="any" required
-                                        className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500" />
+                                    <input type="number" name={f} value={formData[f]} onChange={handleChange} min="1" max="100" step="any" required
+                                        className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none" />
                                 </div>
                             ))}
                         </div>
-
                         <div className="md:col-span-2">
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Ingredients</label>
-                            <textarea name="ingredients" value={formData.ingredients} onChange={handleChange} rows="2" required
-                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500" />
+                            <textarea 
+                            name="ingredients" 
+                            value={formData.ingredients} 
+                            onChange={handleChange} 
+                            rows="2" 
+                            required
+                            className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"
+                            />
                         </div>
 
-                        <button type="submit" className="md:col-span-2 bg-violet-600 text-white py-3 rounded-xl font-bold hover:bg-violet-700">Publish Recipe</button>
+                        {/* Image */}
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Image URL (Optional)</label>
+                            <div className="relative">
+                                <ImageIcon className="absolute left-3 top-3.5 text-gray-400" size={20} />
+                                <input 
+                                type="text" 
+                                name="image" 
+                                value={formData.image} 
+                                onChange={handleChange}
+                                placeholder="https://example.com/image.jpg"
+                                className="w-full pl-10 p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none" />
+                            </div>
+                        </div>
+
+                        <button type="submit" className="md:col-span-2 bg-violet-600 text-white py-3 rounded-xl font-bold hover:bg-violet-700 transition-colors">Publish Recipe</button>
                     </form>
                 </div>
             )}
 
-            {/* רשימת המתכונים */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {recipes.map((recipe) => (
-                    // ה-RELATIVE כאן הוא זה שפותר את בעיית המיקום של הפח אשפה
                     <div key={recipe._id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative group">
                         {recipe.image ? (
                             <img src={recipe.image} alt={recipe.name} className="w-full h-48 object-cover" />
@@ -160,14 +218,11 @@ const AdminRecipes = () => {
                                 <ChefHat size={64} />
                             </div>
                         )}
-                        
                         <div className="p-5">
                             <h3 className="font-bold text-gray-800 text-xl mb-1">{recipe.name}</h3>
                             <p className="text-orange-500 font-semibold mb-3">{recipe.calories} kcal</p>
                             <p className="text-gray-500 text-sm line-clamp-2">{recipe.ingredients}</p>
                         </div>
-
-                        {/* הפח אשפה צמוד לפינה הימנית העליונה של הדיב הזה */}
                         <button 
                             onClick={() => handleDelete(recipe._id)} 
                             className="absolute top-3 right-3 bg-red-500 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"

@@ -61,7 +61,7 @@ const Home = () => {
                     const sorted = [...measurements].sort((a, b) =>
                         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-                    latestWeight = sorted[sorted.length - 1].weight;
+                    latestWeight = sorted[0].weight;
                 }
 
                 // 4. Update weight state
@@ -140,7 +140,7 @@ const Home = () => {
     };
 
     const progress = calculateWeightProgress();
-    const remainingWeight = Math.abs(weightData.currentWeight - weightData.goalWeight).toFixed(1);
+    const remainingWeight = Math.abs(weightData.currentWeight - weightData.goalWeight).toFixed(2);
 
     // Remaining nutrition logic
     const remainingCalories = Math.max(macroData.calories.target - macroData.calories.current, 0);

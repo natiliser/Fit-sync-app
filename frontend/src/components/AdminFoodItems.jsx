@@ -54,7 +54,7 @@ const AdminFoodItems = () => {
         // אם יש הפרש גדול מ-8 קלוריות (אבסולוטי)
         // וגם - הסטייה היא מעל 25% מהערך המחושב (אחוזים)
         const isRelativelyOff = calculatedCals > 0 && (diff / calculatedCals) > 0.25;
-        const isAbsolutelyOff = diff > 8;
+        const isAbsolutelyOff = diff > 7;
 
         if (cals > 0 && (isRelativelyOff || isAbsolutelyOff)) {
             setErrors({ general: `Math error: You entered ${cals} kcal, but the macros equate to ~${Math.round(calculatedCals)} kcal.` });
@@ -109,9 +109,9 @@ const AdminFoodItems = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start mb-8 gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                        <Apple className="text-green-600" size={24} /> Food Database
-                    </h2>
+                    <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                        <Apple className="text-violet-600" size={32} /> Food Database
+                    </h1>
                     <p className="mt-1">Manage global ingredients per 100g.</p>
                 </div>
                 <button onClick={() => setIsAdding(!isAdding)} className="bg-violet-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 hover:bg-violet-700 transition-colors shadow-sm">
