@@ -70,7 +70,6 @@ const MealsDiary = () => {
         }
 
         let newItem = {};
-
         if (entryMode === 'basic') {
             if (!selectedFoodId) newErrors.food = "Select a food item";
             else {

@@ -88,7 +88,7 @@ const Progress = () => {
         if (waist && neck && waist > neck) {
             if (user.gender === 'male') {
                 bodyFatValue = 495 / (1.0324 - 0.19077 * Math.log10(waist - neck) + 0.15456 * Math.log10(heightCm)) - 450;
-            } 
+            }
             else if (user.gender === 'female' && hip) {
                 bodyFatValue = 495 / (1.29579 - 0.35004 * Math.log10(waist + hip - neck) + 0.22100 * Math.log10(heightCm)) - 450;
             }
@@ -173,7 +173,7 @@ const Progress = () => {
     return (
         <div className="max-w-5xl mx-auto mt-10 p-4 font-sans" dir="ltr">
             <div className="mb-8 text-left">
-                
+
                 <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
                     <TrendingDown className="text-violet-600" size={32} />
                     Stats & Progress
@@ -224,11 +224,11 @@ const Progress = () => {
                 </div>
             )}
 
-            {/* הודעה חיובית המציעה להוסיף היקפים במקום שגיאה */}
+            {/* Suggestion text */}
             {currentStats.isEstimated && (
                 <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-8 flex items-center gap-3 text-blue-700 text-sm font-semibold" dir="rtl">
                     <Info size={20} className="text-blue-500 shrink-0" />
-                    <p>אחוז השומן כרגע הוא הערכה כללית המבוססת על גיל ו-BMI. לחישוב מדויק יותר, מומלץ להזין היקפי מותן וצוואר ביומן המדידות.</p>
+                    <p>"The current body fat percentage is a general estimate based on your age and BMI. For a more accurate calculation, it is recommended to enter your waist and neck measurements in the measurement log."</p>
                 </div>
             )}
 
@@ -262,8 +262,8 @@ const Progress = () => {
                 {!hasEnoughData ? (
                     <div className="h-full flex flex-col items-center justify-center text-gray-500 bg-gray-50/50 rounded-xl border border-dashed border-gray-200" dir="rtl">
                         <AlertCircle size={48} className="text-amber-400 mb-4" />
-                        <h3 className="text-lg font-bold text-gray-700 mb-2">אין מספיק נתונים להצגת הגרף בטווח שנבחר.</h3>
-                        <p className="text-sm text-gray-400">יש למלא לפחות שתי שקילות כדי לראות מגמת שינוי במשקל.</p>
+                        <h3 className="text-lg font-bold text-gray-700 mb-2">Insufficient data to display the graph for the selected range.</h3>
+                        <p className="text-sm text-gray-400">Please add at least two weight entries to view your weight change trends.</p>
                     </div>
                 ) : (
                     <ResponsiveContainer width="100%" height="100%">
