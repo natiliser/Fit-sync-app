@@ -91,7 +91,7 @@ const MealsDiary = () => {
             if (!manualData.name) newErrors.name = "Name is required";
             ['calories', 'protein', 'carbs', 'fat'].forEach(field => {
                 const val = parseFloat(manualData[field]);
-                if (isNaN(val) || val < 0) newErrors[field] = "Invalid number";
+                if (isNaN(val) || val < 0) newErrors[field] = `Invalid ${field} `;
             });
 
             if (Object.keys(newErrors).length === 0) {

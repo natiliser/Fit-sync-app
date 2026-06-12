@@ -101,17 +101,27 @@ const Home = () => {
 
     // Fitness Tips Array
     const fitnessTips = [
-        "Drink at least 2-3 liters of water a day to keep your metabolism active.",
-        "Protein is the building block of your muscles. Aim for at least 1.6g per kg of body weight.",
-        "Sleep is when the magic happens! Aim for 7-8 hours of quality sleep for optimal recovery.",
-        "Consistency beats intensity. A moderate workout you do every day is better than a hard one once a month.",
-        "Don't skip leg day! The largest muscles in your body burn the most calories.",
-        "Focus on progressive overload: try to lift a little heavier or do one more rep than last week.",
-        "Carbs are not the enemy! They provide the energy you need for intense workouts.",
-        "Warm up before every session — cold muscles are injury-waiting-to-happen.",
-        "Rest days are not lazy days. Muscles grow during recovery, not during the workout.",
-        "Track your workouts. What gets measured gets improved."
-    ];
+    "Drink at least 2-3 liters of water a day to keep your metabolism active.",
+    "Protein is the building block of your muscles. Aim for at least 1.6g per kg of body weight.",
+    "Sleep is when the magic happens! Aim for 7-8 hours of quality sleep for optimal recovery.",
+    "Consistency beats intensity. A moderate workout you do every day is better than a hard one once a month.",
+    "Don't skip leg day! The largest muscles in your body burn the most calories.",
+    "Focus on progressive overload: try to lift a little heavier or do one more rep than last week.",
+    "Carbs are not the enemy! They provide the energy you need for intense workouts.",
+    "Warm up before every session — cold muscles are injury-waiting-to-happen.",
+    "Rest days are not lazy days. Muscles grow during recovery, not during the workout.",
+    "Track your workouts. What gets measured gets improved.",
+    "Eat whole foods whenever possible; they keep you full longer and provide better nutrients.",
+    "Master your form before adding weight; ego lifting is the fastest way to get sidelined by injury.",
+    "Stretching after a workout can help improve your range of motion and reduce muscle stiffness.",
+    "Don't fear fats! Healthy fats like avocados and nuts are essential for hormone production.",
+    "Focus on the mind-muscle connection; squeeze the muscle you are working rather than just moving the weight.",
+    "Listen to your body. If you feel sharp pain, stop immediately—discomfort is okay, but pain is not.",
+    "Pre-workout nutrition matters; a small meal with carbs and protein 1-2 hours before training boosts performance.",
+    "Vary your training. Introducing new exercises helps prevent plateaus and keeps you motivated.",
+    "Your post-workout meal isn't urgent, but getting enough total daily protein is.",
+    "Be patient. Fitness is a lifelong journey, not a sprint. Enjoy the process of getting stronger."
+];
 
     const [dailyTip, setDailyTip] = useState("");
 
