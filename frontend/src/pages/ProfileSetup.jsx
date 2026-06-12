@@ -16,7 +16,26 @@ const ProfileSetup = () => {
     });
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+
+        if (value === "") {
+            setFormData({ ...formData, [name]: value });
+            return;
+        }
+
+        const numValue = parseFloat(value);
+
+        if (name === "startWeight" || name === "goalWeight" || name === "currentWeight") {
+            if (numValue < 0 || numValue > 250) return;
+        }
+        if (name === 'height') {
+            if (numValue < 0 || numValue > 250) return;
+        }
+        if (name === 'age') {
+            if (numValue < 0 || numValue > 120) return;
+        }
+
+        setFormData({ ...formData, [name]: value });
     };
 
     const handleSubmit = async (e) => {
