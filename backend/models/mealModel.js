@@ -25,17 +25,37 @@ const MealSchema = new mongoose.Schema({
         enum: ['Breakfast', 'Lunch', 'Dinner', 'Snack'],
         default: 'Snack'
     },
-    // Quantity consumed (in grams or units)
+    // Quantity consumed 
     quantity: {
         type: Number,
         required: [true, 'Please provide the quantity'],
         min: [1, 'Quantity must be greater than 0']
     },
     // Nutritional values 
-    calories: { type: Number, required: true, min: 0 },
-    protein: { type: Number, default: 0, min: 0 },
-    carbs: { type: Number, default: 0, min: 0 },
-    fat: { type: Number, default: 0, min: 0 },
+    calories: {
+         type: Number,
+         required: true, 
+         min: [5, 'calories must be at least 5g'],
+         max: [3000, 'calories must be under 3000g']
+    },
+    protein: { 
+        type: Number, 
+        default: 0, 
+        min: [0, 'protein must be at least 0g'],
+        max: [500, 'protein must be under 500g'] 
+    },
+    carbs: { 
+        type: Number,
+        default: 0, 
+        min: [0, 'carbs must be at least 0g'],
+        max: [500, 'carbs must be under 500g']
+    },
+    fat: { 
+        type: Number, 
+        default: 0, 
+        min: [0, 'fat must be at least 0g'],
+        max: [500, 'fat must be under 500g']
+    },
     
     // The date the meal was consumed
     date: {

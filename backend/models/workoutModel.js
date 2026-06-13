@@ -13,7 +13,8 @@ const workoutSchema = new mongoose.Schema({
     duration: { 
         type: Number, 
         required: true,
-        min: [1, 'Duration must be at least 1 minute'] 
+        min: [1, 'Duration must be at least 1 minute'],
+        max: [600, 'Duration must be under 600 minutes']
     },
     workoutType: { 
         type: String, 
@@ -22,7 +23,8 @@ const workoutSchema = new mongoose.Schema({
     },
     caloriesBurned: { 
         type: Number,
-        min: 0
+        min: [1, 'caloriesBurned must be at least 1 minute'],
+        max: [5000, 'caloriesBurned must be under 600 minutes']
     },
     notes: { 
         type: String 

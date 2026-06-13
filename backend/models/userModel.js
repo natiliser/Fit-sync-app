@@ -24,14 +24,14 @@ const UserSchema = new mongoose.Schema({
         enum: ['user', 'admin'],
         default: 'user'
     },
-    // נתונים פיזיים
+    // physical data
     gender: { type: String, enum: ['male', 'female'], default: null },
-    age: { type: Number, default: null },
-    height: { type: Number, default: null },
-    startWeight: { type: Number, default: null },
-    goalWeight: { type: Number, default: null },
+    age: { type: Number, default: null, min: 14 , max: 120 },
+    height: { type: Number, default: null, min: 100 , max: 250 },
+    startWeight: { type: Number, default: null, min: 30 , max: 300 },
+    goalWeight: { type: Number, default: null, min: 30 , max: 300 },
 
-    // נתוני תזונה דינמיים
+    // Dynamic Nutrition Data
     dailyTargets: {
         calories: { type: Number, default: null },
         protein: { type: Number, default: null },
