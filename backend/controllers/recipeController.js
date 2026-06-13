@@ -1,7 +1,7 @@
 const Recipe = require('../models/recipeModel');
 const User = require('../models/userModel');
 
-// שליפת כל המתכונים (פתוח לכולם - כדי שמשתמשים יוכלו לראות)
+
 const getAllRecipes = async (req, res) => {
     try {
         const recipes = await Recipe.find().sort({ createdAt: -1 });
@@ -27,7 +27,7 @@ const addRecipe = async (req, res) => {
             return res.status(400).json({ msg: "Please fill all required fields" });
         }
 
-        // טיפול חכם: אם הרכיבים מגיעים כטקסט עם פסיקים, הופכים אותם למערך
+        // In case ingredients are provided as a comma-separated string, convert them into an array
         const ingredientsArray = Array.isArray(ingredients) 
             ? ingredients 
             : ingredients.split(',')
@@ -45,13 +45,13 @@ const addRecipe = async (req, res) => {
             image
         });
 
-        res.status(201).json({ msg: "המתכון פורסם בהצלחה", recipe: newRecipe });
+        res.status(201).json({ msg: "Recipe published successfully", recipe: newRecipe });
     } catch (error) {
         res.status(500).json({ msg: "Server error", error: error.message });
     }
 };
 
-// מחיקת מתכון (רק למנהל - SUC-5)
+// Delete recipe (Admin only)
 const deleteRecipe = async (req, res) => {
     try {
         const userId = req.user._id || req.user.id || req.user.userId;

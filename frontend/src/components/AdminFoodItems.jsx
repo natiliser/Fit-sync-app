@@ -33,26 +33,22 @@ const AdminFoodItems = () => {
         const carb = parseFloat(formData.carbs) || 0;
         const fat = parseFloat(formData.fat) || 0;
 
-        // 1. חסימת ערכים לא הגיוניים בכלל
+        // Block illogical values
         if (cals < 5) {
             setErrors({ general: "Calories must be at least 5 per 100g." });
             return;
         }
 
-        // 2. חישוב קלוריות לפי מאקרוז (4, 4, 9)
+        // Calculate calories based on macros (4, 4, 9 kcal per gram)
         const calculatedCals = (prot * 4) + (carb * 4) + (fat * 9);
 
-        // ה-LOGIC החדש והמחמיר:
-        // אנחנו בודקים אם יש סטייה גדולה מדי. 
-        // הוספתי בדיקה משולבת: 
-        // א. ההפרש חייב להיות קטן מ-10 קלוריות (בשביל סטייה של עיגול מספרים)
-        // ב. או שההפרש קטן מ-20% מהערך הכולל (בשביל מוצרים גדולים יותר)
+
+        // Difference must be less than 10 kcal 
+        // OR the difference must be less than 25% of the total value
         const diff = Math.abs(cals - calculatedCals);
 
-        // כאן נחסום את זה בצורה חכמה יותר:
-        // אם הקלוריות שוות ל-0, זה לא רלוונטי (הקוד כבר טיפל בזה).
-        // אם יש הפרש גדול מ-8 קלוריות (אבסולוטי)
-        // וגם - הסטייה היא מעל 25% מהערך המחושב (אחוזים)
+        // If absolute difference is greater than 7 kcal
+        // AND deviation is over 25% of the calculated value
         const isRelativelyOff = calculatedCals > 0 && (diff / calculatedCals) > 0.25;
         const isAbsolutelyOff = diff > 7;
 
@@ -66,13 +62,12 @@ const AdminFoodItems = () => {
             return;
         }
 
-        // 3. חסימת "1 בכל השדות" (אם הכל 1, הקלוריות יהיו 17, והסטייה תהיה גדולה מדי)
+        // Block "1 in all fields" scenario 
         if (cals > 0 && (prot + carb + fat) < 1) {
             setErrors({ general: "Please specify at least 1g of macros." });
             return;
         }
 
-        // שליחה לשרת...
         try {
             const token = localStorage.getItem('token');
             const res = await axios.post('http://localhost:5000/food-items', formData, {
@@ -135,8 +130,13 @@ const AdminFoodItems = () => {
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="md:col-span-2">
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Food Name</label>
-                            <input name="name" value={formData.name} onChange={handleChange} required
-                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none" />
+                            <input
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                required
+                                className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"
+                            />
                         </div>
 
                         {['calories', 'protein', 'carbs', 'fat'].map(field => {
@@ -145,8 +145,14 @@ const AdminFoodItems = () => {
                                 <div key={field}>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2 capitalize">{field}</label>
                                     <input
-                                        type="number" name={field} value={formData[field]} onChange={handleChange}
-                                        placeholder={field} min="1" max={max} step="any" required
+                                        type="number"
+                                        name={field}
+                                        value={formData[field]}
+                                        onChange={handleChange}
+                                        placeholder={field}
+                                        min="1" max={max}
+                                        step="any"
+                                        required
                                         className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"
                                     />
                                 </div>
@@ -160,7 +166,7 @@ const AdminFoodItems = () => {
                 </div>
             )}
 
-            {/* Search Bar (Unchanged) */}
+            {/* Search Bar */}
             <div className="relative mb-6">
                 <Search className="absolute left-3 top-3.5 text-gray-400" size={20} />
                 <input
@@ -172,7 +178,7 @@ const AdminFoodItems = () => {
                 />
             </div>
 
-            {/* Table (Unchanged) */}
+            {/* Table */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <table className="w-full text-left border-collapse">
                     <thead className="bg-gray-50 border-b border-gray-100 text-xs uppercase tracking-wider text-gray-500">

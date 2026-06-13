@@ -12,7 +12,7 @@ const MealsDiary = () => {
 
     // Meal Builder States (The "Cart")
     const [addedItems, setAddedItems] = useState([]);
-    const [mealType, setMealType] = useState(''); // Changed to empty string - user MUST select
+    const [mealType, setMealType] = useState(''); 
 
     // Form Inputs
     const [basicFoods, setBasicFoods] = useState([]);
@@ -69,12 +69,13 @@ const MealsDiary = () => {
             newErrors.amount = "Amount must be > 0";
         }
 
+        const multiplier = parsedAmount / 100;
+
         let newItem = {};
         if (entryMode === 'basic') {
             if (!selectedFoodId) newErrors.food = "Select a food item";
             else {
                 const food = basicFoods.find(f => f._id === selectedFoodId);
-                const multiplier = parsedAmount / 100;
                 newItem = {
                     tempId: Date.now(),
                     name: food.name,
@@ -87,26 +88,42 @@ const MealsDiary = () => {
                 };
             }
         } else {
-            if (!manualData.name) newErrors.name = "Name is required";
-            ['calories', 'protein', 'carbs', 'fat'].forEach(field => {
-                const val = parseFloat(manualData[field]);
-                if (isNaN(val) || val < 0) newErrors[field] = `Invalid ${field} `;
-            });
 
-            if (Object.keys(newErrors).length === 0) {
+        if (!manualData.name.trim()) newErrors.name = "Name is required";
+        
+        ['calories', 'protein', 'carbs', 'fat'].forEach(i => {
+            const val = parseFloat(manualData[i]);
+            if (isNaN(val) || val < 0) newErrors[i] = `Invalid ${i}`;
+        });
 
-                newItem = {
-                    tempId: Date.now(),
-                    name: manualData.name,
-                    quantity: parsedAmount,
+        const cals = parseFloat(manualData.calories) || 0;
+        const prot = parseFloat(manualData.protein) || 0;
+        const carb = parseFloat(manualData.carbs) || 0;
+        const fat = parseFloat(manualData.fat) || 0;
 
-                    calories: Math.round(parseFloat(manualData.calories) * multiplier),
-                    protein: Math.round(parseFloat(manualData.protein) * multiplier),
-                    carbs: Math.round(parseFloat(manualData.carbs) * multiplier),
-                    fat: Math.round(parseFloat(manualData.fat) * multiplier)
-                };
-            }
+
+        if (cals <= 0) {
+            newErrors.calories = "Calories must be greater than 0";
         }
+
+
+        if ((prot + carb + fat) === 0 && cals > 0) {
+            newErrors.macros = "Please add at least 1g of macros (Protein, Carbs, or Fat)";
+        }
+
+
+        if (Object.keys(newErrors).length === 0) {
+            newItem = {
+                tempId: Date.now(),
+                name: manualData.name,
+                quantity: parsedAmount,
+                calories: Math.round(cals * multiplier),
+                protein: Math.round(prot * multiplier),
+                carbs: Math.round(carb * multiplier),
+                fat: Math.round(fat * multiplier)
+            };
+        }
+    }
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);

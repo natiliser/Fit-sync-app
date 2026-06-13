@@ -39,7 +39,7 @@ function App() {
             <Route path="/recipes" element={<Layout><Recipes /></Layout>} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
-            {/* נתיב מוגן למנהלים בלבד! */}
+            {/* Protected route: for administrators only! */}
             <Route
               path="/admin" element={
                 <Layout>
@@ -49,7 +49,7 @@ function App() {
                 </Layout>
               }
             />
-            {/* נתיב מוגן למנהלים בלבד! */}
+            {/* Protected route: for administrators only! */}
           </Routes>
         </div>
       </Router>

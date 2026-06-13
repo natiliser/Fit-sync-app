@@ -43,7 +43,7 @@ const navigate = useNavigate();
     };
 
     return (
-        // Wrapper div with Tailwind classes for centering, background, padding, and shadow
+        
         <div className="max-w-md mx-auto mt-20 p-8 bg-white rounded-xl shadow-lg border border-gray-100 font-sans">
             <h2 className="text-3xl font-extrabold text-center text-gray-800 mb-8">
                 Create an Account
@@ -57,7 +57,6 @@ const navigate = useNavigate();
                     value={formData.username} 
                     onChange={handleChange} 
                     required 
-                    // Input styling: border, padding, rounded corners, and a blue ring on focus
                     className="p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                 />
                 
@@ -83,7 +82,6 @@ const navigate = useNavigate();
                 
                 <button 
                     type="submit" 
-                    // Button styling: blue background, white bold text, hover effect
                     className="p-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors mt-2"
                 >
                     Register

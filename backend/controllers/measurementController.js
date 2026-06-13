@@ -4,13 +4,11 @@ const addMeasurement = async (req, res) => {
     try {
         const { weight, waist, neck, hip, date } = req.body;
         console.log(req.user)
-        // הדפסה לקונסול כדי שתוכל לראות בדיוק אילו נתונים מגיעים מהטוקן
-        console.log("Decoded User from Token:", req.user);
 
-        // משיכה חכמה: בודק את כל האפשרויות הנפוצות לשמירת ID בטוקן
+        // Check all common ways the ID is stored in the token
         const userId = req.user.id || req.user.userId || req.user._id; 
         
-        // אם עדיין לא מצאנו ID, נעצור פה לפני שמונגו יקרוס
+        // If an ID is still not found, stop here to prevent database errors
         if (!userId) {
             return res.status(401).json({ msg: "User ID not found in token" });
         }
@@ -39,7 +37,7 @@ const addMeasurement = async (req, res) => {
 
 const getMeasurementHistory = async (req, res) => {
     try {
-        // משיכה חכמה גם כאן
+        
         const userId = req.user.id || req.user.userId || req.user._id; 
 
         if (!userId) {

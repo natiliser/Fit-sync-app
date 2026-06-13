@@ -63,12 +63,12 @@ const ProfileSetup = () => {
             targetCalories += 300;
         }
 
-        // חישוב מאקרו להתאוששות ושמירה על שריר
+        // Calculate macros for muscle recovery and maintenance
         const protein = Math.round(weight * 2.2);
         const fat = Math.round((targetCalories * 0.25) / 9);
         const carbs = Math.round((targetCalories - (protein * 4) - (fat * 9)) / 4);
 
-        // 3. מכינים את החבילה הסופית שכוללת גם את התוצאות של החישוב
+        // 3. Prepare the final data including the calculated results
         const finalData = {
             ...formData,
             calories: Math.round(targetCalories),
@@ -77,7 +77,6 @@ const ProfileSetup = () => {
             fat
         };
 
-        // 4. שליחה לשרת
         try {
             const token = localStorage.getItem('token');
             await axios.put('http://localhost:5000/users/profile', finalData, {

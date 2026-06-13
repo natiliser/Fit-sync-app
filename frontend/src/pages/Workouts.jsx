@@ -7,20 +7,20 @@ const Workouts = () => {
 
      const navigate = useNavigate();
 
-    // 1. ניהול הסטייט (State)
+    // State management
     const [workoutsLog, setWorkoutsLog] = useState([]);
     const [isAdding, setIsAdding] = useState(false);
     const [message, setMessage] = useState({ text: '', type: '' });
     
     const [formData, setFormData] = useState({
-        workoutType: 'Strength', // ערך דיפולטיבי
+        workoutType: 'Strength', // Default parameter
         duration: '',
         caloriesBurned: '',
         date: new Date().toISOString().split('T')[0],
         notes: ''
     });
 
-    // 2. משיכת היסטוריית האימונים כשהדף נטען
+    // Fetch training history on page load
     useEffect(() => {
         fetchWorkouts();
     }, []);
@@ -37,24 +37,24 @@ const Workouts = () => {
         }
     };
 
-    // 3. טיפול בשינויים בשדות הקלט
+    // Handle input field changes
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    // 4. שליחת הטופס לשרת (כולל ולידציות לפי SUC-4)
+    // Submit form to the server 
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // ולידציה: חובה להזין זמן אימון תקין
+        // Validation: Training duration is required
         if (!formData.duration || formData.duration < 1) {
             setMessage({ text: 'Please enter a valid workout duration (minutes)', type: 'error' });
             return;
         }
 
-        // בניית האובייקט לשליחה (מנקים שדות ריקים)
+        // Prepare the payload (remove empty fields)
         const payload = { ...formData };
-        if (payload.caloriesBurned === '') delete payload.caloriesBurned; // כדי שהשרת יחשב לבד
+        if (payload.caloriesBurned === '') delete payload.caloriesBurned; // Let the server perform the calculation
         if (payload.notes === '') delete payload.notes;
 
         try {
@@ -63,10 +63,10 @@ const Workouts = () => {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            // עדכון הרשימה המקומית עם האימון החדש (כולל הקלוריות שחושבו בשרת!)
+            // Update local list with the new workout (including server-calculated calories!)
             setWorkoutsLog([response.data.workout, ...workoutsLog]);
             
-            // איפוס הטופס
+            // Reset form
             setFormData({
                 workoutType: 'Strength',
                 duration: '',
@@ -85,7 +85,7 @@ const Workouts = () => {
         }
     };
 
-    // פונקציית עזר להצגת אייקון לפי סוג האימון
+    // Helper function to render icon based on workout type
     const getWorkoutIcon = (type) => {
         switch(type) {
             case 'Running': return <Activity className="text-blue-500" />;
@@ -119,7 +119,7 @@ const Workouts = () => {
                 </button>
             </div>
 
-            {/* הודעות שגיאה / הצלחה */}
+            {/* Error / Success messages */}
             {message.text && (
                 <div className={`p-4 rounded-xl mb-6 font-semibold ${
                     message.type === 'error' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
@@ -128,13 +128,13 @@ const Workouts = () => {
                 </div>
             )}
 
-            {/* טופס הוספת אימון */}
+            {/* Add workout form */}
             {isAdding && (
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-violet-100 mb-8 animate-in fade-in slide-in-from-top-4">
                     <h2 className="text-xl font-bold text-gray-800 mb-6 border-b pb-4">Log a New Session</h2>
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         
-                        {/* סוג אימון */}
+                        {/* Workout type */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Workout Type</label>
                             <div className="relative">
@@ -154,7 +154,7 @@ const Workouts = () => {
                             </div>
                         </div>
 
-                        {/* תאריך */}
+                        {/* Date */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Date</label>
                             <div className="relative">
@@ -169,7 +169,7 @@ const Workouts = () => {
                             </div>
                         </div>
 
-                        {/* זמן (חובה) */}
+                        {/* Duration */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Duration (Minutes) *</label>
                             <div className="relative">
@@ -185,7 +185,7 @@ const Workouts = () => {
                             </div>
                         </div>
 
-                        {/* קלוריות ידני (אופציונלי) */}
+                        {/* Manual calories */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Calories Burned (Optional)</label>
                             <div className="relative">
@@ -201,7 +201,7 @@ const Workouts = () => {
                             </div>
                         </div>
 
-                        {/* הערות (אופציונלי) */}
+                        {/* Notes */}
                         <div className="md:col-span-2">
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Notes</label>
                             <div className="relative">
@@ -229,7 +229,7 @@ const Workouts = () => {
                 </div>
             )}
 
-            {/* היסטוריית אימונים */}
+            {/* Training history */}
             <div className="space-y-4">
                 <h2 className="text-xl font-bold text-gray-800 mb-4 px-1">Recent Workouts</h2>
                 

@@ -12,7 +12,7 @@ const AdminDashboard = () => {
     return (
         <div className="max-w-6xl mx-auto mt-8 p-4 font-sans">
             
-            {/* כותרת ראשית לפאנל */}
+            {/* Main panel header */}
             <div className="bg-slate-900 rounded-3xl p-8 mb-8 text-white shadow-lg flex items-center gap-4">
                 <div className="p-3 bg-slate-800 rounded-2xl">
                     <Settings size={32} className="text-violet-400" />
@@ -23,7 +23,7 @@ const AdminDashboard = () => {
                 </div>
             </div>
 
-            {/* ניווט לשוניות */}
+            {/* Tab navigation */}
         
             <div className="flex gap-4 mb-8 border-b border-gray-200 pb-px">
                 <button
@@ -51,11 +51,10 @@ const AdminDashboard = () => {
                 </button>
             </div>
 
-            {/* אזור התוכן המשתנה */}
+            {/* Here comes recipe && food components */}
             <div className="animate-in fade-in duration-300">
                 {activeTab === 'recipes' && <AdminRecipes />}
-                
-                {/* כאן תבוא קומפוננטת המזון שתיבנה בהמשך */}
+
                 {activeTab === 'foodItems' && <AdminFoodItems />}
             </div>
         </div>

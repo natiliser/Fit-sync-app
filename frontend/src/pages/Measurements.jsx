@@ -15,107 +15,108 @@ const Measurements = () => {
         waist: '',
         neck: '',
         hip: '',
-        date: new Date().toISOString().split('T')[0] 
+        date: new Date().toISOString().split('T')[0]
     });
 
 
     useEffect(() => {
         const fetchMeasurements = async () => {
-            try{
+            try {
                 const token = localStorage.getItem('token');
-                if(!token){
+                if (!token) {
                     navigate('/login')
                     return;
                 }
 
-                const res = await axios.get('http://localhost:5000/measurements',{
-                    headers: {Authorization: `Bearer ${token}` }
+                const res = await axios.get('http://localhost:5000/measurements', {
+                    headers: { Authorization: `Bearer ${token}` }
                 })
-                if(res.data && res.data.measurements) setMeasurementsLog(res.data.measurements)
+                if (res.data && res.data.measurements) {
+                    const sorted = res.data.measurements.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    setMeasurementsLog(sorted);
+                }
             }
-            catch(error){
+            catch (error) {
                 console.error("Error fetching measurements:", error);
             }
         }
         fetchMeasurements();
-    },[navigate]);
+    }, [navigate]);
 
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
-        if (message.text) setMessage({ text: '', type: '' }); 
+        if (message.text) setMessage({ text: '', type: '' });
     };
 
-const handleSaveMeasurement = async (e) => {
-    e.preventDefault();
-    
-    // 1. בדיקת משקל (חובה, ומינימום 20 ק"ג)
-    const weightVal = parseFloat(formData.weight);
-    if (!formData.weight || weightVal < 20) {
-        setMessage({ text: 'Weight must be at least 20kg', type: 'error' });
-        return;
-    }
+    const handleSaveMeasurement = async (e) => {
+        e.preventDefault();
 
-    // 2. בדיקת היקפים (בודקים רק אם השדה לא ריק)
-    if (formData.waist !== '' && parseFloat(formData.waist) < 40) {
-        setMessage({ text: 'Waist measurement must be at least 40cm', type: 'error' });
-        return;
-    }
-    
-    if (formData.neck !== '' && parseFloat(formData.neck) < 25) {
-        setMessage({ text: 'Neck measurement must be at least 25cm', type: 'error' });
-        return;
-    }
-    
-    if (formData.hip !== '' && parseFloat(formData.hip) < 60) {
-        setMessage({ text: 'Hip measurement must be at least 60cm', type: 'error' });
-        return;
-    }
+        // Measurements validations
+        const weightVal = parseFloat(formData.weight);
+        if (!formData.weight || weightVal < 30) {
+            setMessage({ text: 'Weight must be at least 30kg', type: 'error' });
+            return;
+        }
+        if (formData.waist !== '' && parseFloat(formData.waist) < 50) {
+            setMessage({ text: 'Waist measurement must be at least 50cm', type: 'error' });
+            return;
+        }
+        if (formData.neck !== '' && parseFloat(formData.neck) < 30) {
+            setMessage({ text: 'Neck measurement must be at least 30cm', type: 'error' });
+            return;
+        }
+        if (formData.hip !== '' && parseFloat(formData.hip) < 60) {
+            setMessage({ text: 'Hip measurement must be at least 60cm', type: 'error' });
+            return;
+        }
 
-    // 3. יצירת אובייקט נקי לשליחה (מוחקים שדות ריקים כדי שמונגו לא יקרוס)
-    const payload = { ...formData };
-    if (payload.waist === '') delete payload.waist;
-    if (payload.neck === '') delete payload.neck;
-    if (payload.hip === '') delete payload.hip;
+        // Create a clean object for submission (remove empty fields to avoid database validation errors)
+        const payload = { ...formData };
+        if (payload.waist === '') delete payload.waist;
+        if (payload.neck === '') delete payload.neck;
+        if (payload.hip === '') delete payload.hip;
 
-    try {
-        const token = localStorage.getItem('token');
-        const response = await axios.post('http://localhost:5000/measurements', payload, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.post('http://localhost:5000/measurements', payload, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
 
-        setMeasurementsLog([response.data.measurement, ...measurementsLog]);
-        
-        setFormData({
-            weight: '',
-            waist: '',
-            neck: '',
-            hip: '',
-            date: new Date().toISOString().split('T')[0]
-        });
-        setIsAdding(false);
-        setMessage({ text: 'Measurement saved successfully!', type: 'success' });
-        
-        setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+            const updatedList = [response.data.measurement, ...measurementsLog];
+            updatedList.sort((a, b) => new Date(b.date) - new Date(a.date));
+            setMeasurementsLog(updatedList);
 
-    } catch (error) {
-        console.error("Error saving measurement:", error);
-        setMessage({ text: error.response?.data?.msg || 'Failed to save measurement', type: 'error' });
-    }
-};
+            setFormData({
+                weight: '',
+                waist: '',
+                neck: '',
+                hip: '',
+                date: new Date().toISOString().split('T')[0]
+            });
+            setIsAdding(false);
+            setMessage({ text: 'Measurement saved successfully!', type: 'success' });
+
+            setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+
+        } catch (error) {
+            console.error("Error saving measurement:", error);
+            setMessage({ text: error.response?.data?.msg || 'Failed to save measurement', type: 'error' });
+        }
+    };
 
 
     const formatDate = (dateString) => {
-    const options = { weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('he-IL', options); // can change to 'en-US' instead
-};
+        const options = { weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric' };
+        return new Date(dateString).toLocaleDateString('he-IL', options); // can change to 'en-US' instead
+    };
 
 
-  return (
-    <div className="max-w-4xl mx-auto mt-10 p-4 font-sans">
+    return (
+        <div className="max-w-4xl mx-auto mt-10 p-4 font-sans">
             {/* Header Actions */}
             <div className="flex justify-between items-center mb-6">
-                
+
                 <button onClick={() => setIsAdding(!isAdding)} className="flex items-center gap-2 bg-violet-600 text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-violet-700 transition-colors">
                     {isAdding ? 'Cancel' : <><Plus size={20} /> Log Measurement</>}
                 </button>
@@ -143,26 +144,26 @@ const handleSaveMeasurement = async (e) => {
                                 <div className="space-y-4">
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-600 mb-1">Date <span className="text-red-500">*</span></label>
-                                        <input 
-                                            type="date" 
-                                            name="date" 
-                                            value={formData.date} 
-                                            onChange={handleChange} 
+                                        <input
+                                            type="date"
+                                            name="date"
+                                            value={formData.date}
+                                            onChange={handleChange}
                                             required
-                                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500" 
+                                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-600 mb-1">Weight (kg) <span className="text-red-500">*</span></label>
-                                        <input 
-                                            type="number" 
+                                        <input
+                                            type="number"
                                             step="0.1"
-                                            name="weight" 
+                                            name="weight"
                                             placeholder="e.g. 72.5"
-                                            value={formData.weight} 
-                                            onChange={handleChange} 
+                                            value={formData.weight}
+                                            onChange={handleChange}
                                             required
-                                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500" 
+                                            className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
                                         />
                                     </div>
                                 </div>
@@ -173,40 +174,40 @@ const handleSaveMeasurement = async (e) => {
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 mb-1">Waist at navel (cm)</label>
-                                            <input 
-                                            type="number" 
-                                            step="0.1" 
-                                            name="waist" 
-                                            value={formData.waist} 
-                                            onChange={handleChange} 
-                                            className="w-full p-2.5 bg-white border border-gray-200 rounded-lg"
-                                            placeholder="e.g. 85"
-                                             />
+                                            <input
+                                                type="number"
+                                                step="0.1"
+                                                name="waist"
+                                                value={formData.waist}
+                                                onChange={handleChange}
+                                                className="w-full p-2.5 bg-white border border-gray-200 rounded-lg"
+                                                placeholder="e.g. 85"
+                                            />
                                         </div>
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 mb-1">Neck Below the Adam's apple (cm)</label>
-                                            <input 
-                                            type="number" 
-                                            step="0.1" 
-                                            name="neck" 
-                                            value={formData.neck} 
-                                            onChange={handleChange} 
-                                            className="w-full p-2.5 bg-white border border-gray-200 rounded-lg"
-                                            placeholder="e.g. 38"
-                                             />
+                                            <input
+                                                type="number"
+                                                step="0.1"
+                                                name="neck"
+                                                value={formData.neck}
+                                                onChange={handleChange}
+                                                className="w-full p-2.5 bg-white border border-gray-200 rounded-lg"
+                                                placeholder="e.g. 38"
+                                            />
                                         </div>
                                         <div>
                                             <label className="block text-xs font-semibold text-gray-600 mb-1">Hip (cm)</label>
                                             <h5 className="block text-xs font-semibold text-gray-600 mb-1">* women only</h5>
-                                            <input 
-                                            type="number"
-                                             step="0.1" 
-                                             name="hip" 
-                                             value={formData.hip}
-                                             onChange={handleChange} 
-                                             className="w-full p-2.5 bg-white border border-gray-200 rounded-lg" 
-                                             placeholder="e.g. 95"
-                                              />
+                                            <input
+                                                type="number"
+                                                step="0.1"
+                                                name="hip"
+                                                value={formData.hip}
+                                                onChange={handleChange}
+                                                className="w-full p-2.5 bg-white border border-gray-200 rounded-lg"
+                                                placeholder="e.g. 95"
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -227,7 +228,7 @@ const handleSaveMeasurement = async (e) => {
                 <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                     <TrendingDown className="text-violet-500" size={24} /> Progress History
                 </h2>
-                
+
                 {measurementsLog.length === 0 ? (
                     <div className="text-center text-gray-500 py-10 flex flex-col items-center gap-3">
                         <Activity size={40} className="text-gray-300" />
@@ -245,7 +246,7 @@ const handleSaveMeasurement = async (e) => {
                                         <Calendar size={14} /> {formatDate(log.date || log.createdAt)}
                                     </p>
                                 </div>
-                                
+
                                 {(log.waist || log.neck || log.hip) && (
                                     <div className="flex gap-4 text-sm bg-white px-4 py-2 rounded-lg border border-gray-200">
                                         {log.waist && <div><span className="text-gray-400 text-xs block">Waist</span> <span className="font-semibold">{log.waist}cm</span></div>}

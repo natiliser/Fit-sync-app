@@ -11,15 +11,15 @@ const register = async (req, res) => {
     try {
         // Mongoose automatically runs the pre('save') middleware here to hash the password
         const user = await User.create(req.body);
-        
+
         // Generate the token for the new user
         const token = user.createJWT();
 
         // We return the token and basic user info (without the password!)
-        res.status(201).json({ 
-            msg: "User registered successfully", 
+        res.status(201).json({
+            msg: "User registered successfully",
             user: { username: user.username, email: user.email },
-            token 
+            token
         });
     } catch (error) {
         console.log("Error saving user:", error.message)
@@ -53,10 +53,10 @@ const login = async (req, res) => {
         const token = user.createJWT();
 
         // Send the success response with the token
-        res.status(200).json({ 
-            msg: "Login successful", 
+        res.status(200).json({
+            msg: "Login successful",
             user: user,
-            token 
+            token
         });
 
     } catch (error) {
@@ -66,23 +66,23 @@ const login = async (req, res) => {
 
 const googleAuth = async (req, res) => {
     try {
-        const { token } = req.body; // האסימון שנקבל מה-React
+        const { token } = req.body; // The token received from React
 
-        // אימות האסימון מול השרתים של גוגל
+        // Verify the token with Google's servers
         const ticket = await client.verifyIdToken({
             idToken: token,
             audience: process.env.GOOGLE_CLIENT_ID
         });
-        
-        // חילוץ הפרטים שהמשתמש אישר לגוגל לשתף איתנו
+
+        // Extract the details the user authorized Google to share with us
         const { name, email } = ticket.getPayload();
 
-        // בדיקה האם המשתמש כבר קיים אצלנו במסד הנתונים
+        // Check if the user already exists in our database
         let user = await User.findOne({ email });
 
         if (!user) {
-            // אם הוא לא קיים, ניצור אותו כמשתמש חדש
-            // נייצר סיסמה אקראית כי השדה הוא חובה במודל שלנו
+            // If they don't exist, create a new user record
+            // Generate a random password 
             const randomPassword = Math.random().toString(36).slice(-8) + 'A1!';
             user = await User.create({
                 username: name,
@@ -91,13 +91,13 @@ const googleAuth = async (req, res) => {
             });
         }
 
-        // עכשיו נייצר לו את ה-Token הרגיל של המערכת שלנו, בדיוק כמו בהתחברות רגילה!
+        // Generate our system's standard token, just like a regular login!
         const jwtToken = user.createJWT();
 
-        res.status(200).json({ 
-            msg: "Google login successful", 
-            user: user, 
-            token: jwtToken 
+        res.status(200).json({
+            msg: "Google login successful",
+            user: user,
+            token: jwtToken
         });
 
     } catch (error) {
@@ -108,8 +108,8 @@ const googleAuth = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-       
-        const userId = req.user?.userId; 
+
+        const userId = req.user?.userId;
 
         const updatedData = {
             gender: req.body.gender,
@@ -127,16 +127,16 @@ const updateProfile = async (req, res) => {
 
 
         const updatedUser = await User.findByIdAndUpdate(
-            userId, 
-            updatedData, 
+            userId,
+            updatedData,
             { returnDocument: 'after', runValidators: true }
         );
-        
+
         if (!updatedUser) return res.status(404).json({ msg: "User not found" });
 
         res.json({ msg: 'Profile updated successfully', user: updatedUser });
     } catch (error) {
-        console.error("Server Error in updateProfile:", error); // זה ידפיס את השגיאה האמיתית!
+        console.error("Server Error in updateProfile:", error);
         res.status(500).json({ msg: 'Server error', error: error.message });
     }
 };
@@ -155,7 +155,7 @@ const getUserProfile = async (req, res) => {
     }
 };
 
-const forgotPassword = async (req,res) => {
+const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
 
@@ -209,15 +209,15 @@ const forgotPassword = async (req,res) => {
     }
 };
 
-const resetPassword = async (req,res) => {
+const resetPassword = async (req, res) => {
     try {
         const { token } = req.params;
         const { password } = req.body;
 
-        // 1. חיפוש משתמש לפי טוקן וזמן תפוגה שעדיין לא עבר
-        const user = await User.findOne({ 
-            resetPasswordToken: token, 
-            resetPasswordExpire: { $gt: Date.now() } 
+        // Find user by token and check if notexpired yet
+        const user = await User.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpire: { $gt: Date.now() }
         });
 
         if (!user) {
@@ -226,7 +226,7 @@ const resetPassword = async (req,res) => {
 
         user.password = password;
 
-        // 3. ניקוי הטוקן מה-Database כדי שלא יהיה ניתן להשתמש בו שוב
+        // Remove the token from the database to prevent reuse
         user.resetPasswordToken = undefined;
         user.resetPasswordExpire = undefined;
         await user.save();
@@ -238,10 +238,6 @@ const resetPassword = async (req,res) => {
         res.status(500).json({ message: "Server error, please try again" });
     }
 }
-
-
-
-
 
 
 module.exports = {

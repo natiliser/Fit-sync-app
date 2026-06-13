@@ -14,9 +14,9 @@ const Progress = () => {
     const [rawWorkoutData, setRawWorkoutData] = useState([]);
     const [chartData, setChartData] = useState([]);
     const [hasEnoughData, setHasEnoughData] = useState(true);
-
-    // הוספנו דגל (isEstimated) שיעזור לנו לדעת איזה באנר להציג
     const [userData, setUserData] = useState(null);
+
+    // Add a flag (isEstimated) to determine which banner to display
     const [currentStats, setCurrentStats] = useState({ bmi: null, bodyFat: null, latestWeight: null, isEstimated: false });
 
     useEffect(() => {
@@ -34,9 +34,10 @@ const Progress = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
-                const measurements = weightRes.data.measurements;
+                let measurements = weightRes.data.measurements || [];
 
-                // תיקון קריטי: שליפה בטוחה של המשתמש גם אם הוא עטוף וגם אם הוא ישיר
+                measurements.sort((a, b) => new Date(b.date) - new Date(a.date));
+
                 const user = userRes.data.user || userRes.data;
 
                 setRawWeightData(measurements);
@@ -44,7 +45,7 @@ const Progress = () => {
                 setUserData(user);
 
                 if (measurements.length > 0 && user?.height) {
-                    const latestMeasurement = measurements[0]; // המדידה האחרונה
+                    const latestMeasurement = measurements[0];
                     calculateStats(latestMeasurement, user);
                 }
 
@@ -60,23 +61,14 @@ const Progress = () => {
         const weight = measurement?.weight;
         const heightCm = user?.height;
 
-        //for debug
-        console.log("נתוני קלט שהגיעו לחישוב:", {
-            weight,
-            heightCm,
-            waist: measurement?.waist,
-            neck: measurement?.neck,
-            hip: measurement?.hip
-        });
-
         if (!weight || !heightCm) return;
 
         const heightM = heightCm / 100;
 
-        // 1. חישוב BMI (משקל חלקי גובה במטרים בריבוע)
+        // Calculate BMI 
         const bmiValue = weight / (heightM * heightM);
 
-        // 2. חישוב אחוז שומן (נוסחת US Navy המטרית - עבודה ישירה בס"מ)
+        // Calculate body fat percentage (US Navy metric formula - using cm)
         let bodyFatValue = null;
         let estimated = false;
 
@@ -84,7 +76,7 @@ const Progress = () => {
         const neck = measurement?.neck;
         const hip = measurement?.hip;
 
-        // 1. החישוב הרגיל של ה-US Navy
+        // Standard US Navy calculation
         if (waist && neck && waist > neck) {
             if (user.gender === 'male') {
                 bodyFatValue = 495 / (1.0324 - 0.19077 * Math.log10(waist - neck) + 0.15456 * Math.log10(heightCm)) - 450;
@@ -94,27 +86,27 @@ const Progress = () => {
             }
         }
 
-        // 2. בדיקת הגיוניות התוצאה הסופית
-        // אם התוצאה שחזרה מהנוסחה היא מחוץ לטווח הגיוני (למשל קטנה מ-3% או גדולה מ-60%) - נפסול אותה!
+        // Validate final result
+        // If the result is outside a logical range (e.g., < 3% or > 60%), reject it
         if (bodyFatValue !== null && (bodyFatValue < 3 || bodyFatValue > 60 || isNaN(bodyFatValue))) {
-            bodyFatValue = null; // מאפסים אותה כדי שהשלב הבא יפעיל את הגיבוי
+            bodyFatValue = null; // Reset the value so the next step triggers the fallback mechanism
         }
 
-        // 3. מנגנון הגיבוי (יופעל עכשיו אוטומטית גם עבור ערכים הזויים שהקלידו בטעות)
+        // Fallback mechanism (now automatically handles erroneous user input)
         if (!bodyFatValue && user?.age && user?.gender) {
             estimated = true;
             const sexFactor = user.gender === 'male' ? 1 : 0;
             bodyFatValue = (1.20 * bmiValue) + (0.23 * user.age) - (10.8 * sexFactor) - 5.4;
         }
 
-        // קביעת הערך הסופי לתצוגה
+        // Set final display value
         const finalBodyFat = (bodyFatValue && !isNaN(bodyFatValue) && bodyFatValue > 0)
             ? bodyFatValue.toFixed(1)
             : 'N/A';
 
         setCurrentStats({
             latestWeight: weight,
-            bmi: bmiValue.toFixed(1),
+            bmi: bmiValue.toFixed(),
             bodyFat: finalBodyFat,
             isEstimated: estimated
         });
@@ -125,36 +117,66 @@ const Progress = () => {
     }, [dataType, timeRange, rawWeightData, rawWorkoutData]);
 
     const processData = (type, range) => {
-        let sourceData = type === 'weight' ? [...rawWeightData] : [...rawWorkoutData];
+    let sourceData = type === 'weight' ? [...rawWeightData] : [...rawWorkoutData];
 
-        if (sourceData.length === 0) {
-            setHasEnoughData(false);
-            return;
+    if (sourceData.length === 0) {
+        setHasEnoughData(false);
+        return;
+    }
+
+    const cutoffDate = new Date();
+    if (range === 'week') cutoffDate.setDate(cutoffDate.getDate() - 7);
+    else if (range === 'month') cutoffDate.setMonth(cutoffDate.getMonth() - 1);
+    else cutoffDate.setFullYear(2000);
+
+    // Create a "perfect date": Combine the manually entered date with the exact timestamp of the save action
+    const mappedData = sourceData.map(item => {
+        const preciseDate = new Date(item.date); // Extract day/month/year from the form
+        
+        if (item.createdAt) {
+            const time = new Date(item.createdAt);
+            // Merge the time (hours, minutes, seconds) of the save action to the manual date to prevent UI duplicates
+            preciseDate.setHours(time.getHours(), time.getMinutes(), time.getSeconds());
         }
+        
+        return { ...item, preciseDate };
+    });
 
-        const cutoffDate = new Date();
-        if (range === 'week') cutoffDate.setDate(cutoffDate.getDate() - 7);
-        else if (range === 'month') cutoffDate.setMonth(cutoffDate.getMonth() - 1);
-        else cutoffDate.setFullYear(2000);
+    // Filter by the selected range
+    const filtered = mappedData.filter(item => item.preciseDate >= cutoffDate);
 
-        const filtered = sourceData.filter(item => new Date(item.date) >= cutoffDate);
+    // Sort chronologically (oldest to newest) based on the combined date
+    filtered.sort((a, b) => a.preciseDate - b.preciseDate);
 
-        const requiredPoints = type === 'weight' ? 2 : 1;
-        if (filtered.length < requiredPoints) {
-            setHasEnoughData(false);
-            setChartData([]);
-            return;
-        }
+    const requiredPoints = type === 'weight' ? 2 : 1;
+    if (filtered.length < requiredPoints) {
+        setHasEnoughData(false);
+        setChartData([]);
+        return;
+    }
 
-        setHasEnoughData(true);
+    setHasEnoughData(true);
 
-        const formatted = filtered.map(item => ({
-            date: new Date(item.date).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' }),
-            value: type === 'weight' ? item.weight : item.caloriesBurned
-        })).reverse();
+    // Format data for the chart display
+    const formatted = filtered.map(item => {
+        const d = item.preciseDate;
+        
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        
+        // Example output: 14.06 19:30
+        const timeLabel = `${day}.${month} ${hours}:${minutes}`;
 
-        setChartData(formatted);
-    };
+        return {
+            date: timeLabel,
+            value: type === 'weight' ? parseFloat(item.weight) : parseFloat(item.caloriesBurned)
+        };
+    });
+
+    setChartData(formatted);
+};
 
     const CustomTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
@@ -181,7 +203,7 @@ const Progress = () => {
                 <p className="text-gray-500 mt-1">Analyze your data and track your journey</p>
             </div>
 
-            {/* כרטיסיות הסטטיסטיקה */}
+            {/* Statistics cards*/}
             {currentStats.latestWeight && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
@@ -197,7 +219,7 @@ const Progress = () => {
                     <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
                         <div className="p-3 bg-pink-50 text-pink-600 rounded-xl relative">
                             <Percent size={24} />
-                            {/* כוכבית קטנה ליד האייקון אם זה מוערך */}
+                            {/* Add a small asterisk next to the icon if the value is estimated */}
                             {currentStats.isEstimated && (
                                 <span className="absolute -top-1 -right-1 text-pink-400 font-bold">*</span>
                             )}
@@ -228,7 +250,7 @@ const Progress = () => {
             {currentStats.isEstimated && (
                 <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-8 flex items-center gap-3 text-blue-700 text-sm font-semibold" dir="rtl">
                     <Info size={20} className="text-blue-500 shrink-0" />
-                    <p>"The current body fat percentage is a general estimate based on your age and BMI. For a more accurate calculation, it is recommended to enter your waist and neck measurements in the measurement log."</p>
+                    <p>The current body fat percentage is a general estimate based on your age and BMI. For a more accurate calculation, it is recommended to enter your waist and neck measurements in the measurement log.</p>
                 </div>
             )}
 

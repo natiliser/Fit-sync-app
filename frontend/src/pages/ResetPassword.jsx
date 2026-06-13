@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Lock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 const ResetPassword = () => {
-    const { token } = useParams(); // תופס את הטוקן מה-URL
+    const { token } = useParams(); // Extract the token from the URL
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
@@ -17,7 +17,7 @@ const ResetPassword = () => {
         setError('');
 
         try {
-            // שליחת הסיסמה החדשה והטוקן לשרת
+            // Send the new password and the token to the server
             await axios.post(`http://localhost:5000/users/reset-password/${token}`, { password });
             setMessage('Password updated successfully! Redirecting to login...');
             setTimeout(() => navigate('/login'), 3000);

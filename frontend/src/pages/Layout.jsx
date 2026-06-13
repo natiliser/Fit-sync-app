@@ -30,7 +30,7 @@ const Layout = ({ children }) => {
                 backgroundAttachment: 'fixed'
             }}
         >
-            {/* Sidebar - Fixed width of w-24 (6rem / 96px) */}
+            {/* Sidebar */}
             <div className="w-24 bg-[#26215C] flex flex-col items-center pt-6 pb-4 gap-6 fixed top-0 left-0 h-screen z-10 shadow-xl">
                 
                 {/* Logo */}

@@ -23,17 +23,14 @@ const navigate = useNavigate();
         try {
             const response = await axios.post('http://localhost:5000/users/login', formData);
             
-            // 1. שמירת ה-Token
+            // Token save
             localStorage.setItem('token', response.data.token);
-            
-            // 2. ניתוב חכם: האם למשתמש יש כבר משקל התחלתי?
+    
             const user = response.data.user;
-            
+
             if (!user.startWeight) {
-                // משתמש חדש שעוד לא מילא פרטים
                 navigate('/profile-setup');
             } else {
-                // משתמש ותיק שכבר מילא פרטים
                 navigate('/home');
             }
             
@@ -49,18 +46,14 @@ const navigate = useNavigate();
                 token: credentialResponse.credential
             });
             
-            // שמירת ה-Token
             localStorage.setItem('token', response.data.token);
             
-            // שליפת פרטי המשתמש מהתשובה של השרת
             const user = response.data.user;
             
-            // ניתוב חכם
             if (user.startWeight === null || user.startWeight === undefined || user.startWeight === 0){
-                // משתמש גוגל חדש (או כזה שעוד לא מילא פרטים)
                 navigate('/profile-setup');
-            } else {
-                // משתמש גוגל קיים שכבר מילא פרטים
+            } 
+            else {
                 navigate('/home');
             }
             

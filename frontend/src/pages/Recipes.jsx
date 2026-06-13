@@ -7,9 +7,9 @@ const Recipes = () => {
     const navigate = useNavigate();
     const [recipes, setRecipes] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('All');
-    const [selectedRecipe, setSelectedRecipe] = useState(null); // מנהל את החלונית הקופצת
+    const [selectedRecipe, setSelectedRecipe] = useState(null);  // Manage the modal state
 
-    // קטגוריות לדוגמה (אפשר לשלוף דינמית מהשרת בהמשך)
+
     const categories = ['All', 'Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Vegan'];
 
     useEffect(() => {
@@ -24,7 +24,7 @@ const Recipes = () => {
         fetchRecipes();
     }, []);
 
-    // סינון המתכונים לפי הקטגוריה שנבחרה
+    // Filter recipes based on the selected category
     const filteredRecipes = selectedCategory === 'All' 
         ? recipes 
         : recipes.filter(r => r.category === selectedCategory);
@@ -40,7 +40,7 @@ const Recipes = () => {
                 <p className="text-gray-500 text-lg">Discover nutritious meals to fuel your fitness journey</p>
             </div>
 
-            {/* שורת סינון קטגוריות */}
+            {/* Category filter bar*/}
             <div className="flex flex-wrap justify-center gap-3 mb-10">
                 {categories.map(category => (
                     <button
@@ -57,12 +57,12 @@ const Recipes = () => {
                 ))}
             </div>
 
-            {/* גריד המתכונים */}
+            {/* Recipe grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {filteredRecipes.map((recipe) => (
                     <div 
                         key={recipe._id} 
-                        onClick={() => setSelectedRecipe(recipe)} // פותח את המודל
+                        onClick={() => setSelectedRecipe(recipe)} // Open the modal
                         className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all cursor-pointer group"
                     >
                         <div className="h-56 overflow-hidden relative">
@@ -92,7 +92,7 @@ const Recipes = () => {
                 ))}
             </div>
 
-            {/* חלונית קופצת (Modal) להצגת פרטי המתכון המלאים */}
+            {/* Modal for displaying full recipe details */}
             {selectedRecipe && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative animate-in fade-in zoom-in-95">

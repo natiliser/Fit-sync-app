@@ -17,10 +17,10 @@ const ForgotPassword = () => {
         setError('');
 
         try {
-            // שליחת בקשת ה-POST לשרת עם האימייל שצריך לשחזר
+            // Send POST request to the server with the email to recover
             const response = await axios.post('http://localhost:5000/users/forgot-password', { email });
             setMessage(response.data.message || 'Reset link sent successfully! Check your email.');
-            setEmail(''); // ניקוי השדה לאחר הצלחה
+            setEmail('');
         } catch (err) {
             setError(err.response?.data?.message || 'Something went wrong. Please try again.');
         } finally {
@@ -31,7 +31,7 @@ const ForgotPassword = () => {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans" dir="ltr">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                {/* כפתור חזרה למסך הלוגין */}
+                {/* Back button to login page */}
                 <button 
                     onClick={() => navigate('/login')} 
                     className="flex items-center gap-2 text-sm font-semibold text-violet-600 hover:text-violet-800 transition-colors mb-6 mx-auto sm:mx-0"
@@ -50,7 +50,7 @@ const ForgotPassword = () => {
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="bg-white py-8 px-4 shadow sm:rounded-2xl sm:px-10 border border-gray-100">
                     
-                    {/* הצגת הודעת הצלחה */}
+                    {/* Display success message */}
                     {message && (
                         <div className="mb-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-start gap-3 text-sm">
                             <CheckCircle2 size={20} className="text-emerald-500 shrink-0 mt-0.5" />
@@ -58,7 +58,7 @@ const ForgotPassword = () => {
                         </div>
                     )}
 
-                    {/* הצגת הודעת שגיאה */}
+                    {/* Display error message */}
                     {error && (
                         <div className="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 flex items-start gap-3 text-sm">
                             <AlertCircle size={20} className="text-red-500 shrink-0 mt-0.5" />
