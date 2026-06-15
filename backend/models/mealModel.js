@@ -35,7 +35,7 @@ const MealSchema = new mongoose.Schema({
     calories: {
          type: Number,
          required: true, 
-         min: [5, 'calories must be at least 5g'],
+         min: [1, 'calories must be at least 1g'],
          max: [3000, 'calories must be under 3000g']
     },
     protein: { 

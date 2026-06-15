@@ -181,7 +181,7 @@ const AdminRecipes = () => {
                                         name={f}
                                         value={formData[f]}
                                         onChange={handleChange}
-                                        min="1"
+                                        min="0"
                                         max="100"
                                         step="any"
                                         required

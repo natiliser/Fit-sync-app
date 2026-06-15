@@ -57,9 +57,13 @@ const Home = () => {
                 let latestWeight = user.startWeight || 0;
 
                 if (measurements.length > 0) {
-
-                    const sorted = [...measurements].sort((a, b) =>
-                        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                    // Dual-stage sorting: first by manual date, then by creation time fallback
+                    const sorted = [...measurements].sort((a, b) => {
+                        const dateA = new Date(a.date).getTime();
+                        const dateB = new Date(b.date).getTime();
+                        if (dateA !== dateB) return dateB - dateA;
+                        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                    });
 
                     latestWeight = sorted[0].weight;
                 }
@@ -111,13 +115,13 @@ const Home = () => {
     "Warm up before every session — cold muscles are injury-waiting-to-happen.",
     "Rest days are not lazy days. Muscles grow during recovery, not during the workout.",
     "Track your workouts. What gets measured gets improved.",
-    "Eat whole foods whenever possible; they keep you full longer and provide better nutrients.",
-    "Master your form before adding weight; ego lifting is the fastest way to get sidelined by injury.",
+    "Eat whole foods whenever possible, they keep you full longer and provide better nutrients.",
+    "Master your form before adding weight, ego lifting is the fastest way to get sidelined by injury.",
     "Stretching after a workout can help improve your range of motion and reduce muscle stiffness.",
     "Don't fear fats! Healthy fats like avocados and nuts are essential for hormone production.",
-    "Focus on the mind-muscle connection; squeeze the muscle you are working rather than just moving the weight.",
+    "Focus on the mind-muscle connection, squeeze the muscle you are working rather than just moving the weight.",
     "Listen to your body. If you feel sharp pain, stop immediately—discomfort is okay, but pain is not.",
-    "Pre-workout nutrition matters; a small meal with carbs and protein 1-2 hours before training boosts performance.",
+    "Pre-workout nutrition matters, a small meal with carbs and protein 1-2 hours before training boosts performance.",
     "Vary your training. Introducing new exercises helps prevent plateaus and keeps you motivated.",
     "Your post-workout meal isn't urgent, but getting enough total daily protein is.",
     "Be patient. Fitness is a lifelong journey, not a sprint. Enjoy the process of getting stronger."

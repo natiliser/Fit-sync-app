@@ -32,7 +32,16 @@ const Measurements = () => {
                     headers: { Authorization: `Bearer ${token}` }
                 })
                 if (res.data && res.data.measurements) {
-                    const sorted = res.data.measurements.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                    const sorted = res.data.measurements.sort((a, b) => {
+                        const dateA = new Date(a.date).getTime();
+                        const dateB = new Date(b.date).getTime();
+
+                        if (dateA !== dateB)
+                            return dateB - dateA;
+
+                        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                    });
                     setMeasurementsLog(sorted);
                 }
             }
@@ -84,7 +93,14 @@ const Measurements = () => {
             });
 
             const updatedList = [response.data.measurement, ...measurementsLog];
-            updatedList.sort((a, b) => new Date(b.date) - new Date(a.date));
+            updatedList.sort((a, b) => {
+                const dateA = new Date(a.date).getTime();
+                const dateB = new Date(b.date).getTime();
+                if (dateA !== dateB) 
+                    return dateB - dateA;
+                
+                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            });
             setMeasurementsLog(updatedList);
 
             setFormData({

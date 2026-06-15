@@ -6,7 +6,7 @@ import AdminFoodItems from './AdminFoodItems';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
-    // מנהל איזו לשונית פתוחה כרגע (ברירת מחדל: מתכונים)
+    
     const [activeTab, setActiveTab] = useState('recipes');
 
     return (

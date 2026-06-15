@@ -22,8 +22,7 @@ const register = async (req, res) => {
             token
         });
     } catch (error) {
-        console.log("Error saving user:", error.message)
-        res.status(400).json({ msg: error.message });
+        res.status(400).json({ msg: "User register failed" });
     }
 };
 
@@ -40,13 +39,13 @@ const login = async (req, res) => {
         // Step B: Find the user in the database by email
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(401).json({ msg: "Invalid email" }); // 401 = Unauthorized
+            return res.status(401).json({ msg: "Incorrect email or password" }); 
         }
 
         // Step C: Compare the typed password with the hashed password in the database
         const isPasswordCorrect = await user.comparePassword(password);
         if (!isPasswordCorrect) {
-            return res.status(401).json({ msg: "Invalid password" });
+            return res.status(401).json({ msg: "Incorrect email or password" });
         }
 
         // Step D: If everything is correct, generate a token

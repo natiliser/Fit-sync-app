@@ -36,7 +36,13 @@ const Progress = () => {
 
                 let measurements = weightRes.data.measurements || [];
 
-                measurements.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                measurements.sort((a, b) => {
+                    const dateA = new Date(a.date).getTime();
+                    const dateB = new Date(b.date).getTime();
+                    if (dateA !== dateB) return dateB - dateA;
+                    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                });
 
                 const user = userRes.data.user || userRes.data;
 
@@ -45,8 +51,8 @@ const Progress = () => {
                 setUserData(user);
 
                 if (measurements.length > 0 && user?.height) {
-                    const latestMeasurement = measurements[0];
-                    calculateStats(latestMeasurement, user);
+                    
+                    calculateStats(measurements, user);
                 }
 
             } catch (error) {
@@ -57,56 +63,54 @@ const Progress = () => {
         fetchAllData();
     }, []);
 
-    const calculateStats = (measurement, user) => {
-        const weight = measurement?.weight;
+   
+    const calculateStats = (measurementsArray, user) => {
+        // המשקל העדכני נלקח מהאיבר הראשון במערך
+        const latestMeasurement = measurementsArray[0];
+        const weight = latestMeasurement?.weight;
         const heightCm = user?.height;
 
+        
         if (!weight || !heightCm) return;
 
         const heightM = heightCm / 100;
-
-        // Calculate BMI 
         const bmiValue = weight / (heightM * heightM);
 
-        // Calculate body fat percentage (US Navy metric formula - using cm)
         let bodyFatValue = null;
         let estimated = false;
 
-        const waist = measurement?.waist;
-        const neck = measurement?.neck;
-        const hip = measurement?.hip;
+        
+        const latestWaist = measurementsArray.find(m => m.waist)?.waist;
+        const latestNeck = measurementsArray.find(m => m.neck)?.neck;
+        const latestHip = measurementsArray.find(m => m.hip)?.hip;
 
-        // Standard US Navy calculation
-        if (waist && neck && waist > neck) {
+        if (latestWaist && latestNeck && latestWaist > latestNeck) {
             if (user.gender === 'male') {
-                bodyFatValue = 495 / (1.0324 - 0.19077 * Math.log10(waist - neck) + 0.15456 * Math.log10(heightCm)) - 450;
+                bodyFatValue = 495 / (1.0324 - 0.19077 * Math.log10(latestWaist - latestNeck) + 0.15456 * Math.log10(heightCm)) - 450;
             }
-            else if (user.gender === 'female' && hip) {
-                bodyFatValue = 495 / (1.29579 - 0.35004 * Math.log10(waist + hip - neck) + 0.22100 * Math.log10(heightCm)) - 450;
+            else if (user.gender === 'female' && latestHip) {
+                bodyFatValue = 495 / (1.29579 - 0.35004 * Math.log10(latestWaist + latestHip - latestNeck) + 0.22100 * Math.log10(heightCm)) - 450;
             }
         }
 
-        // Validate final result
-        // If the result is outside a logical range (e.g., < 3% or > 60%), reject it
         if (bodyFatValue !== null && (bodyFatValue < 3 || bodyFatValue > 60 || isNaN(bodyFatValue))) {
-            bodyFatValue = null; // Reset the value so the next step triggers the fallback mechanism
+            bodyFatValue = null;
         }
 
-        // Fallback mechanism (now automatically handles erroneous user input)
         if (!bodyFatValue && user?.age && user?.gender) {
             estimated = true;
             const sexFactor = user.gender === 'male' ? 1 : 0;
             bodyFatValue = (1.20 * bmiValue) + (0.23 * user.age) - (10.8 * sexFactor) - 5.4;
         }
 
-        // Set final display value
         const finalBodyFat = (bodyFatValue && !isNaN(bodyFatValue) && bodyFatValue > 0)
             ? bodyFatValue.toFixed(1)
             : 'N/A';
 
+        
         setCurrentStats({
             latestWeight: weight,
-            bmi: bmiValue.toFixed(),
+            bmi: bmiValue.toFixed(1),
             bodyFat: finalBodyFat,
             isEstimated: estimated
         });
@@ -117,66 +121,77 @@ const Progress = () => {
     }, [dataType, timeRange, rawWeightData, rawWorkoutData]);
 
     const processData = (type, range) => {
-    let sourceData = type === 'weight' ? [...rawWeightData] : [...rawWorkoutData];
+        let sourceData = type === 'weight' ? [...rawWeightData] : [...rawWorkoutData];
 
-    if (sourceData.length === 0) {
-        setHasEnoughData(false);
-        return;
-    }
-
-    const cutoffDate = new Date();
-    if (range === 'week') cutoffDate.setDate(cutoffDate.getDate() - 7);
-    else if (range === 'month') cutoffDate.setMonth(cutoffDate.getMonth() - 1);
-    else cutoffDate.setFullYear(2000);
-
-    // Create a "perfect date": Combine the manually entered date with the exact timestamp of the save action
-    const mappedData = sourceData.map(item => {
-        const preciseDate = new Date(item.date); // Extract day/month/year from the form
-        
-        if (item.createdAt) {
-            const time = new Date(item.createdAt);
-            // Merge the time (hours, minutes, seconds) of the save action to the manual date to prevent UI duplicates
-            preciseDate.setHours(time.getHours(), time.getMinutes(), time.getSeconds());
+        if (sourceData.length === 0) {
+            setHasEnoughData(false);
+            return;
         }
-        
-        return { ...item, preciseDate };
-    });
 
-    // Filter by the selected range
-    const filtered = mappedData.filter(item => item.preciseDate >= cutoffDate);
+        const cutoffDate = new Date();
+        const currentDate = new Date(); // The upper bound (now)
 
-    // Sort chronologically (oldest to newest) based on the combined date
-    filtered.sort((a, b) => a.preciseDate - b.preciseDate);
+        if (range === 'week') cutoffDate.setDate(cutoffDate.getDate() - 7);
+        else if (range === 'month') cutoffDate.setMonth(cutoffDate.getMonth() - 1);
+        else cutoffDate.setFullYear(2000);
 
-    const requiredPoints = type === 'weight' ? 2 : 1;
-    if (filtered.length < requiredPoints) {
-        setHasEnoughData(false);
-        setChartData([]);
-        return;
-    }
+        // 1. Create a "perfect date": Combine the manually entered date with the exact timestamp of the save action
+        const mappedData = sourceData.map(item => {
+            const preciseDate = new Date(item.date); // Extract day/month/year from the form
 
-    setHasEnoughData(true);
+            if (item.createdAt) {
+                const time = new Date(item.createdAt);
+                // Merge the time (hours, minutes, seconds) of the save action to the manual date to prevent UI duplicates
+                preciseDate.setHours(time.getHours(), time.getMinutes(), time.getSeconds());
+            }
 
-    // Format data for the chart display
-    const formatted = filtered.map(item => {
-        const d = item.preciseDate;
-        
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const hours = String(d.getHours()).padStart(2, '0');
-        const minutes = String(d.getMinutes()).padStart(2, '0');
-        
-        // Example output: 14.06 19:30
-        const timeLabel = `${day}.${month} ${hours}:${minutes}`;
+            return { ...item, preciseDate };
+        });
 
-        return {
-            date: timeLabel,
-            value: type === 'weight' ? parseFloat(item.weight) : parseFloat(item.caloriesBurned)
-        };
-    });
+        // 2. Filter by the selected range (with strict boundaries!)
+        const filtered = mappedData.filter(item => {
+            if (range === 'all') {
+                // For "All Time", we show everything, even if future dates were entered by mistake
+                return item.preciseDate >= cutoffDate;
+            } else {
+                // For "Week" or "Month", the date MUST be within the window: from cutoff to right now
+                return item.preciseDate >= cutoffDate && item.preciseDate <= currentDate;
+            }
+        });
 
-    setChartData(formatted);
-};
+        // 3. Sort chronologically (oldest to newest) based on the combined date
+        filtered.sort((a, b) => a.preciseDate - b.preciseDate);
+
+        const requiredPoints = type === 'weight' ? 2 : 1;
+        if (filtered.length < requiredPoints) {
+            setHasEnoughData(false);
+            setChartData([]);
+            return;
+        }
+
+        setHasEnoughData(true);
+
+        // 4. Format data for the chart display
+        const formatted = filtered.map(item => {
+            const d = item.preciseDate;
+            const time = new Date(item.createdAt || item.date);
+
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const hours = String(time.getHours()).padStart(2, '0');
+            const minutes = String(time.getMinutes()).padStart(2, '0');
+            const seconds = String(time.getSeconds()).padStart(2, '0');
+
+            const timeLabel = `${day}.${month} ${hours}:${minutes}:${seconds}`;
+
+            return {
+                date: timeLabel,
+                value: type === 'weight' ? parseFloat(item.weight) : parseFloat(item.caloriesBurned)
+            };
+        });
+
+        setChartData(formatted);
+    };
 
     const CustomTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {

@@ -58,7 +58,6 @@ const navigate = useNavigate();
             }
             
             setMessage("Google Login successful!");
-            console.log("FitSync Token:", response.data.token);
         } catch (error) {
             setMessage('Google authentication failed on our server');
         }

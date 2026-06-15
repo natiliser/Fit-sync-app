@@ -150,7 +150,8 @@ const AdminFoodItems = () => {
                                         value={formData[field]}
                                         onChange={handleChange}
                                         placeholder={field}
-                                        min="1" max={max}
+                                        min="0" 
+                                        max={max}
                                         step="any"
                                         required
                                         className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 outline-none"

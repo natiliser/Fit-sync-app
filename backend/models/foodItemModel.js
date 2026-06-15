@@ -12,29 +12,29 @@ const FoodItemSchema = new mongoose.Schema({
     calories: {
         type: Number,
         required: [true, 'Please provide calories'],
-        min: [5, 'calories must be at least 100cm'],
-        max: [3000, 'calories must be under 100cm']
+        min: 1,
+        max: 3000
     },
     // Protein amount in grams
     protein: {
         type: Number,
         required: [true, 'Please provide protein amount'],
-        min: [0, 'protein must be at least 100cm'],
-        max: [500, 'protein must be under 100cm']
+        min: 0,
+        max: 500
     },
     // Carbohydrates amount in grams
     carbs: {
         type: Number,
         required: [true, 'Please provide carbs amount'],
-        min: [0, 'carbs must be at least 100cm'],
-        max: [500, 'carbs must be under 100cm']
+        min: 0,
+        max: 500
     },
     // Fats amount in grams
     fat: {
         type: Number,
         required: [true, 'Please provide fats amount'],
-        min: [0, 'fats must be at least 100cm'],
-        max: [500, 'fats must be under 100cm']
+        min: 0,
+        max: 500
     }
 }, {
     timestamps: true

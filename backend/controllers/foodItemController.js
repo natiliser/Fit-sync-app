@@ -1,7 +1,7 @@
 const FoodItem = require('../models/foodItemModel');
 const User = require('../models/userModel');
 
-// שליפת כל פריטי המזון
+
 const getAllFoodItems = async (req, res) => {
     try {
         const foodItems = await FoodItem.find().sort({ name: 1 });
@@ -11,7 +11,7 @@ const getAllFoodItems = async (req, res) => {
     }
 };
 
-// הוספת פריט מזון חדש (אדמין בלבד - SUC-8)
+
 const addFoodItem = async (req, res) => {
     try {
         const userId = req.user._id || req.user.id || req.user.userId;
@@ -27,24 +27,23 @@ const addFoodItem = async (req, res) => {
             return res.status(400).json({ msg: "Please fill all required fields" });
         }
 
-        // הסתעפות SUC-8: מניעת פריט כפול
-        // שימוש ב-RegEx כדי לוודא ש"חזה עוף" ו-"חזה  עוף" יזוהו כאותו פריט
+        // Using RegEx to ensure duplicate items
         const existingItem = await FoodItem.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
         if (existingItem) {
-            return res.status(409).json({ msg: "פריט בשם זה כבר קיים." }); // ההודעה המדויקת מהאפיון!
+            return res.status(409).json({ msg: "This food item already exists" }); 
         }
 
         const newFoodItem = await FoodItem.create({
             name, calories, protein, carbs, fat
         });
 
-        res.status(201).json({ msg: "הפריט מזון נוסף בהצלחה", foodItem: newFoodItem });
+        res.status(201).json({ msg: "Food item successfully added", foodItem: newFoodItem });
     } catch (error) {
         res.status(500).json({ msg: "Server error", error: error.message });
     }
 };
 
-// מחיקת פריט מזון (אדמין בלבד)
+
 const deleteFoodItem = async (req, res) => {
     try {
         const userId = req.user._id || req.user.id || req.user.userId;

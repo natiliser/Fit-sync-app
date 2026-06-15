@@ -2,6 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
+import {ArrowLeft} from 'lucide-react';
 
 const Register = () => {
 const navigate = useNavigate();
@@ -45,6 +46,13 @@ const navigate = useNavigate();
     return (
         
         <div className="max-w-md mx-auto mt-20 p-8 bg-white rounded-xl shadow-lg border border-gray-100 font-sans">
+            {/* Back button to login page */}
+                <button 
+                    onClick={() => navigate('/login')} 
+                    className="flex items-center gap-2 text-sm font-semibold text-violet-600 hover:text-violet-800 transition-colors mb-6 mx-auto sm:mx-0"
+                >
+                    <ArrowLeft size={16} /> Back to Login
+                </button>
             <h2 className="text-3xl font-extrabold text-center text-gray-800 mb-8">
                 Create an Account
             </h2>

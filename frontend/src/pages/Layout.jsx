@@ -40,7 +40,7 @@ const Layout = ({ children }) => {
 
                 {/* Nav items */}
                 <div className="flex flex-col gap-4 flex-1">
-                    {navItems.map(({ icon: Icon, path, label }) => (
+                    {navItems.map( ({ icon: Icon, path, label }) => (
                         <button
                             key={path}
                             onClick={() => navigate(path)}
