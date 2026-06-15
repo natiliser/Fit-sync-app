@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Dumbbell, Clock, Flame, Calendar, PlusCircle, Activity, FileText, ArrowLeft } from 'lucide-react';
+import { Dumbbell, Clock, Flame, Calendar, PlusCircle, Activity, FileText } from 'lucide-react';
 
 const Workouts = () => {
 
-     const navigate = useNavigate();
+    const navigate = useNavigate();
 
     // State management
     const [workoutsLog, setWorkoutsLog] = useState([]);
     const [isAdding, setIsAdding] = useState(false);
     const [message, setMessage] = useState({ text: '', type: '' });
-    
+
     const [formData, setFormData] = useState({
         workoutType: 'Strength', // Default parameter
         duration: '',
@@ -19,6 +19,14 @@ const Workouts = () => {
         date: new Date().toISOString().split('T')[0],
         notes: ''
     });
+
+    const MET_VALUES = {
+        'Strength': 3.0,
+        'Running': 9.8,
+        'Walking': 3.8,
+        'Yoga': 3.0,
+        'Mixed': 6.0
+    };
 
     // Fetch training history on page load
     useEffect(() => {
@@ -45,17 +53,49 @@ const Workouts = () => {
     // Submit form to the server 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
+        const durationNum = parseFloat(formData.duration);
+
         // Validation: Training duration is required
-        if (!formData.duration || formData.duration < 1) {
+        if (!durationNum || durationNum < 1) {
             setMessage({ text: 'Please enter a valid workout duration (minutes)', type: 'error' });
             return;
         }
 
-        // Prepare the payload (remove empty fields)
+        // Prepare the payload
         const payload = { ...formData };
-        if (payload.caloriesBurned === '') delete payload.caloriesBurned; // Let the server perform the calculation
+
         if (payload.notes === '') delete payload.notes;
+
+        // Smart Calories Validation (Only if the user manually entered calories)
+        if (payload.caloriesBurned === '') {
+            delete payload.caloriesBurned; // Let the server perform the calculation
+        } else {
+            const userCalories = parseFloat(formData.caloriesBurned);
+            const type = formData.workoutType;
+
+            if (userCalories <= 0) {
+                setMessage({ text: 'Calories must be greater than 0', type: 'error' });
+                return;
+            }
+
+            const met = MET_VALUES[type] || 6.0;
+            const estimatedWeight = 75; // Default average weight for calculations
+            const durationInHours = durationNum / 60;
+            const estimatedCalories = met * estimatedWeight * durationInHours;
+
+            // 40% margin for realistic bounds
+            const minAllowed = estimatedCalories * 0.6;
+            const maxAllowed = estimatedCalories * 1.4;
+
+            if (userCalories < minAllowed || userCalories > maxAllowed) {
+                setMessage({
+                    text: `Please enter a realistic value. For ${durationNum} mins of ${type}, expected burn is roughly between ${Math.round(minAllowed)} and ${Math.round(maxAllowed)} kcal.`,
+                    type: 'error'
+                });
+                return;
+            }
+        }
 
         try {
             const token = localStorage.getItem('token');
@@ -65,7 +105,7 @@ const Workouts = () => {
 
             // Update local list with the new workout (including server-calculated calories!)
             setWorkoutsLog([response.data.workout, ...workoutsLog]);
-            
+
             // Reset form
             setFormData({
                 workoutType: 'Strength',
@@ -76,7 +116,7 @@ const Workouts = () => {
             });
             setIsAdding(false);
             setMessage({ text: 'Workout saved successfully!', type: 'success' });
-            
+
             setTimeout(() => setMessage({ text: '', type: '' }), 3000);
 
         } catch (error) {
@@ -87,7 +127,7 @@ const Workouts = () => {
 
     // Helper function to render icon based on workout type
     const getWorkoutIcon = (type) => {
-        switch(type) {
+        switch (type) {
             case 'Running': return <Activity className="text-blue-500" />;
             case 'Yoga': return <Activity className="text-teal-500" />;
             case 'Walking': return <Activity className="text-green-500" />;
@@ -96,21 +136,36 @@ const Workouts = () => {
         }
     };
 
+    // Helper function to format date + exact time
+    const formatDateTime = (workout) => {
+        const dateObj = new Date(workout.date);
+        const timeObj = new Date(workout.createdAt || workout.date);
+
+        const optionsDate = { weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric' };
+        const formattedDate = dateObj.toLocaleDateString('he-IL', optionsDate);
+
+        const hours = String(timeObj.getHours()).padStart(2, '0');
+        const minutes = String(timeObj.getMinutes()).padStart(2, '0');
+        const seconds = String(timeObj.getSeconds()).padStart(2, '0');
+
+        return `${formattedDate} • ${hours}:${minutes}:${seconds}`;
+    };
+
     return (
-        
+
         <div className="max-w-4xl mx-auto mt-10 p-4 font-sans">
-            
+
             <div className="flex justify-between items-center mb-8">
-                
+
                 <div>
                     <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
                         <Dumbbell className="text-violet-600" size={32} />
                         Workouts Diary
                     </h1>
-                    
+
                     <p className="text-gray-500 mt-1">Track your training and calories burned</p>
                 </div>
-                <button 
+                <button
                     onClick={() => setIsAdding(!isAdding)}
                     className="bg-violet-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-violet-700 transition-colors shadow-sm"
                 >
@@ -121,9 +176,8 @@ const Workouts = () => {
 
             {/* Error / Success messages */}
             {message.text && (
-                <div className={`p-4 rounded-xl mb-6 font-semibold ${
-                    message.type === 'error' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                }`}>
+                <div className={`p-4 rounded-xl mb-6 font-semibold ${message.type === 'error' ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                    }`}>
                     {message.text}
                 </div>
             )}
@@ -133,13 +187,13 @@ const Workouts = () => {
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-violet-100 mb-8 animate-in fade-in slide-in-from-top-4">
                     <h2 className="text-xl font-bold text-gray-800 mb-6 border-b pb-4">Log a New Session</h2>
                     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        
+
                         {/* Workout type */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Workout Type</label>
                             <div className="relative">
                                 <Activity className="absolute left-3 top-3 text-gray-400" size={20} />
-                                <select 
+                                <select
                                     name="workoutType"
                                     value={formData.workoutType}
                                     onChange={handleChange}
@@ -159,7 +213,7 @@ const Workouts = () => {
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Date</label>
                             <div className="relative">
                                 <Calendar className="absolute left-3 top-3 text-gray-400" size={20} />
-                                <input 
+                                <input
                                     type="date"
                                     name="date"
                                     value={formData.date}
@@ -174,9 +228,11 @@ const Workouts = () => {
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Duration (Minutes) *</label>
                             <div className="relative">
                                 <Clock className="absolute left-3 top-3 text-gray-400" size={20} />
-                                <input 
+                                <input
                                     type="number"
                                     name="duration"
+                                    min="1"
+                                    max="600"
                                     placeholder="e.g. 45"
                                     value={formData.duration}
                                     onChange={handleChange}
@@ -190,9 +246,11 @@ const Workouts = () => {
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Calories Burned (Optional)</label>
                             <div className="relative">
                                 <Flame className="absolute left-3 top-3 text-gray-400" size={20} />
-                                <input 
+                                <input
                                     type="number"
                                     name="caloriesBurned"
+                                    min="1"
+                                    max="5000"
                                     placeholder="Leave empty for auto-calc"
                                     value={formData.caloriesBurned}
                                     onChange={handleChange}
@@ -206,7 +264,7 @@ const Workouts = () => {
                             <label className="block text-sm font-semibold text-gray-700 mb-2">Notes</label>
                             <div className="relative">
                                 <FileText className="absolute left-3 top-3 text-gray-400" size={20} />
-                                <input 
+                                <input
                                     type="text"
                                     name="notes"
                                     placeholder="e.g. Chest and Triceps, felt strong today"
@@ -218,7 +276,7 @@ const Workouts = () => {
                         </div>
 
                         <div className="md:col-span-2 flex justify-end mt-2">
-                            <button 
+                            <button
                                 type="submit"
                                 className="bg-violet-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-violet-700 transition-colors shadow-md"
                             >
@@ -232,7 +290,7 @@ const Workouts = () => {
             {/* Training history */}
             <div className="space-y-4">
                 <h2 className="text-xl font-bold text-gray-800 mb-4 px-1">Recent Workouts</h2>
-                
+
                 {workoutsLog.length === 0 ? (
                     <div className="bg-gray-50 border border-dashed border-gray-300 rounded-2xl p-10 text-center">
                         <Dumbbell className="mx-auto text-gray-400 mb-3" size={48} />
@@ -242,7 +300,7 @@ const Workouts = () => {
                 ) : (
                     workoutsLog.map((workout) => (
                         <div key={workout._id} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:shadow-md transition-shadow">
-                            
+
                             <div className="flex items-center gap-4">
                                 <div className="p-4 bg-gray-50 rounded-xl">
                                     {getWorkoutIcon(workout.workoutType)}
@@ -251,7 +309,7 @@ const Workouts = () => {
                                     <h3 className="font-bold text-gray-800 text-lg">{workout.workoutType}</h3>
                                     <p className="text-sm text-gray-500 flex items-center gap-1">
                                         <Calendar size={14} />
-                                        {new Date(workout.date).toLocaleDateString('he-IL')}
+                                        {formatDateTime(workout)}
                                     </p>
                                 </div>
                             </div>
@@ -260,20 +318,20 @@ const Workouts = () => {
                                 <div className="text-center">
                                     <span className="block text-xs text-gray-500 font-semibold mb-1 uppercase tracking-wider">Duration</span>
                                     <span className="font-bold text-gray-800 flex items-center justify-center gap-1">
-                                        <Clock size={16} className="text-violet-500"/>
+                                        <Clock size={16} className="text-violet-500" />
                                         {workout.duration} min
                                     </span>
                                 </div>
-                                
+
                                 <div className="text-center">
                                     <span className="block text-xs text-gray-500 font-semibold mb-1 uppercase tracking-wider">Burned</span>
                                     <span className="font-bold text-gray-800 flex items-center justify-center gap-1">
-                                        <Flame size={16} className="text-orange-500"/>
+                                        <Flame size={16} className="text-orange-500" />
                                         {workout.caloriesBurned} kcal
                                     </span>
                                 </div>
                             </div>
-                            
+
                             {workout.notes && (
                                 <div className="w-full md:w-auto bg-gray-50 p-3 rounded-lg text-sm text-gray-600 border border-gray-100 flex-grow md:max-w-xs">
                                     <span className="font-semibold text-gray-700">Notes: </span>{workout.notes}
