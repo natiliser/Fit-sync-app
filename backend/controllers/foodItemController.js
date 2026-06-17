@@ -7,7 +7,7 @@ const getAllFoodItems = async (req, res) => {
         const foodItems = await FoodItem.find().sort({ name: 1 });
         res.status(200).json({ foodItems });
     } catch (error) {
-        res.status(500).json({ msg: "Server error", error: error.message });
+        res.status(500).json({ msg: "Error fetching all food items", error: error.message });
     }
 };
 
@@ -39,7 +39,7 @@ const addFoodItem = async (req, res) => {
 
         res.status(201).json({ msg: "Food item successfully added", foodItem: newFoodItem });
     } catch (error) {
-        res.status(500).json({ msg: "Server error", error: error.message });
+        res.status(500).json({ msg: "Error adding food item", error: error.message });
     }
 };
 
@@ -56,7 +56,7 @@ const deleteFoodItem = async (req, res) => {
         await FoodItem.findByIdAndDelete(req.params.id);
         res.status(200).json({ msg: "Food item deleted successfully" });
     } catch (error) {
-        res.status(500).json({ msg: "Server error", error: error.message });
+        res.status(500).json({ msg: "Error deleting food item", error: error.message });
     }
 };
 

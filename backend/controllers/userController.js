@@ -135,8 +135,7 @@ const updateProfile = async (req, res) => {
 
         res.json({ msg: 'Profile updated successfully', user: updatedUser });
     } catch (error) {
-        console.error("Server Error in updateProfile:", error);
-        res.status(500).json({ msg: 'Server error', error: error.message });
+        res.status(500).json({ msg: 'Server Error in updateProfile', error: error.message });
     }
 };
 
@@ -150,7 +149,7 @@ const getUserProfile = async (req, res) => {
         }
         res.status(200).json({ user });
     } catch (error) {
-        res.status(500).json({ msg: "Server error", error: error.message });
+        res.status(500).json({ msg: "Error getting user profile data", error: error.message });
     }
 };
 
@@ -203,8 +202,7 @@ const forgotPassword = async (req, res) => {
         res.status(200).json({ message: "Email for reset password successfully sended" });
 
     } catch (error) {
-        console.error("Forgot Password Error:", error);
-        res.status(500).json({ message: "Server error, please try again later." });
+        res.status(500).json({ message: "Forgot Password Error, please try again." });
     }
 };
 
@@ -233,8 +231,7 @@ const resetPassword = async (req, res) => {
         res.status(200).json({ message: "Password updated" });
 
     } catch (error) {
-        console.error("Reset Password Error:", error);
-        res.status(500).json({ message: "Server error, please try again" });
+        res.status(500).json({ message: "Reset Password Error, please try again." });
     }
 }
 

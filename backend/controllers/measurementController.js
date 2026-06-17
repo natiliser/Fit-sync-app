@@ -30,8 +30,7 @@ const addMeasurement = async (req, res) => {
         });
     }
     catch (error) {
-        console.error("Error adding measurement:", error);
-        res.status(500).json({ msg: "Server error", error: error.message });
+        res.status(500).json({ msg: "Error adding measurement", error: error.message });
     }
 };
 
@@ -48,8 +47,7 @@ const getMeasurementHistory = async (req, res) => {
         res.status(200).json({ measurements });
 
     } catch (error) {
-        console.error("Error fetching measurement history:", error);
-        res.status(500).json({ msg: "Server error", error: error.message });
+        res.status(500).json({ msg: "Error fetching measurement history", error: error.message });
     }
 };
 

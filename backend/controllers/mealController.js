@@ -76,8 +76,7 @@ const getTodaySummary = async (req, res) => {
 
         res.json(summary);
     } catch (error) {
-        console.error("Error fetching today's summary:", error);
-        res.status(500).json({ msg: "Server error while fetching meals summary" });
+        res.status(500).json({ msg: "Error fetching today's summary" });
     }
 };
 

@@ -7,7 +7,7 @@ const getAllRecipes = async (req, res) => {
         const recipes = await Recipe.find().sort({ createdAt: -1 });
         res.status(200).json({ recipes });
     } catch (error) {
-        res.status(500).json({ msg: "Server error", error: error.message });
+        res.status(500).json({ msg: "Error fetching all recipes!", error: error.message });
     }
 };
 
@@ -47,7 +47,7 @@ const addRecipe = async (req, res) => {
 
         res.status(201).json({ msg: "Recipe published successfully", recipe: newRecipe });
     } catch (error) {
-        res.status(500).json({ msg: "Server error", error: error.message });
+        res.status(500).json({ msg: "Error publishing recipe", error: error.message });
     }
 };
 
@@ -66,7 +66,7 @@ const deleteRecipe = async (req, res) => {
 
         res.status(200).json({ msg: "Recipe deleted successfully", id: recipeId });
     } catch (error) {
-        res.status(500).json({ msg: "Server error", error: error.message });
+        res.status(500).json({ msg: "Error deleting recipe!", error: error.message });
     }
 };
 

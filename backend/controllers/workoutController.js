@@ -54,8 +54,7 @@ const addWorkout = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error adding workout:", error);
-        res.status(500).json({ msg: "Server error", error: error.message });
+        res.status(500).json({ msg: "Error adding workout", error: error.message });
     }
 };
 
@@ -69,8 +68,7 @@ const getWorkoutsHistory = async (req, res) => {
         res.status(200).json({ workouts });
 
     } catch (error) {
-        console.error("Error fetching workouts:", error);
-        res.status(500).json({ msg: "Server error", error: error.message });
+        res.status(500).json({ msg: "Error fetching workouts", error: error.message });
     }
 };
 
