@@ -9,13 +9,10 @@ const nodemailer = require('nodemailer');
 // 1. Register a new user
 const register = async (req, res) => {
     try {
-        // Mongoose automatically runs the pre('save') middleware here to hash the password
         const user = await User.create(req.body);
 
-        // Generate the token for the new user
         const token = user.createJWT();
 
-        // We return the token and basic user info (without the password!)
         res.status(201).json({
             msg: "User registered successfully",
             user: { username: user.username, email: user.email },
