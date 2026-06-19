@@ -30,33 +30,19 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-
-        // Step A: Check if the user provided both email and password
         if (!email || !password) {
             return res.status(400).json({ msg: "Please provide email and password" });
         }
-
-        // Step B: Find the user in the database by email
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(401).json({ msg: "Incorrect email or password" }); 
         }
-
-        // Step C: Compare the typed password with the hashed password in the database
         const isPasswordCorrect = await user.comparePassword(password);
         if (!isPasswordCorrect) {
             return res.status(401).json({ msg: "Incorrect email or password" });
         }
-
-        // Step D: If everything is correct, generate a token
         const token = user.createJWT();
-
-        // Send the success response with the token
-        res.status(200).json({
-            msg: "Login successful",
-            user: user,
-            token
-        });
+        res.status(200).json({ msg: "Login successful",user: user,token });
 
     } catch (error) {
         res.status(500).json({ msg: error.message });
