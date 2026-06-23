@@ -18,7 +18,7 @@ const app = express();
 // 1. CORS Middleware MUST come first, before any routes!
 app.use(cors({
     // Allow requests from your Vite React frontend
-    origin: 'http://localhost:5173', 
+    origin: 'https://fit-sync-app.onrender.com', 
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true // Allow cookies/tokens to be sent
 }));
