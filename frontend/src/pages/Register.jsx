@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import axios from 'axios';
 import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import {ArrowLeft} from 'lucide-react';
+import api from '../api';
 
 const Register = () => {
 const navigate = useNavigate();
@@ -26,7 +26,7 @@ const navigate = useNavigate();
         e.preventDefault(); 
         
         try {
-            const response = await axios.post('http://localhost:5000/users/register', formData);
+            const response = await api.post('/users/register', formData);
             setMessage(response.data.msg);
 
             setTimeout(() => {

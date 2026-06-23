@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Lock, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import api from '../api';
 
 const ResetPassword = () => {
     const { token } = useParams(); // Extract the token from the URL
@@ -18,7 +18,7 @@ const ResetPassword = () => {
 
         try {
             // Send the new password and the token to the server
-            await axios.post(`http://localhost:5000/users/reset-password/${token}`, { password });
+            await api.post(`/users/reset-password/${token}`, { password });
             setMessage('Password updated successfully! Redirecting to login...');
             setTimeout(() => navigate('/login'), 3000);
         } catch (err) {

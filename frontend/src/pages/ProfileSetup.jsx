@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Scale, Target, User, Save, Zap } from 'lucide-react';
-import axios from 'axios';
+import api from '../api';
 
 const ProfileSetup = () => {
     const navigate = useNavigate();
@@ -79,7 +79,7 @@ const ProfileSetup = () => {
 
         try {
             const token = localStorage.getItem('token');
-            await axios.put('http://localhost:5000/users/profile', finalData, {
+            await api.put('/users/profile', finalData, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }

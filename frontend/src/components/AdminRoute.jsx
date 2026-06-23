@@ -1,6 +1,7 @@
 import { jwtDecode } from "jwt-decode";
 import { Navigate } from 'react-router-dom';
 
+
 const AdminRoute = ({ children }) => {
     const token = localStorage.getItem('token');
 

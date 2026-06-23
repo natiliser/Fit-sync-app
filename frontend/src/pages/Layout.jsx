@@ -1,6 +1,7 @@
 // src/components/Layout.jsx
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BarChart2, Dumbbell, Apple, Scale, ChefHat, Home, LogOut } from 'lucide-react';
+import api from '../api';
 
 const Layout = ({ children }) => {
     const navigate = useNavigate();

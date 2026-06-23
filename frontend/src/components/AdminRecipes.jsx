@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { ChefHat, PlusCircle, Trash2, Image as ImageIcon } from 'lucide-react';
+import api from '../api';
 
 const AdminRecipes = () => {
     const [recipes, setRecipes] = useState([]);
@@ -20,7 +20,7 @@ const AdminRecipes = () => {
 
     const fetchRecipes = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/recipes');
+            const res = await api.get('/recipes');
             setRecipes(res.data.recipes);
         } catch (error) {
             console.error("Error fetching recipes:", error);
@@ -78,7 +78,7 @@ const AdminRecipes = () => {
         // Send to server
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.post('http://localhost:5000/recipes', formData, {
+            const res = await api.post('/recipes', formData, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -103,7 +103,7 @@ const AdminRecipes = () => {
 
         try {
             const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:5000/recipes/${id}`, {
+            await api.delete(`/recipes/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 

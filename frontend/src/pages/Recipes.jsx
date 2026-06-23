@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { ChefHat, Search, X, Flame , ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,7 +15,7 @@ const Recipes = () => {
     useEffect(() => {
         const fetchRecipes = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/recipes');
+                const res = await api.get('/recipes');
                 setRecipes(res.data.recipes);
             } catch (error) {
                 console.error("Error fetching recipes:", error);

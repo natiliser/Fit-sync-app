@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
-import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
+import api from '../api';
 
 const Login = () => {
 
@@ -21,7 +21,7 @@ const navigate = useNavigate();
     const handleStandardLogin = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:5000/users/login', formData);
+            const response = await api.post('/users/login', formData);
             
             // Token save
             localStorage.setItem('token', response.data.token);
@@ -42,7 +42,7 @@ const navigate = useNavigate();
     // Handle Google login success
     const handleGoogleSuccess = async (credentialResponse) => {
         try {
-            const response = await axios.post('http://localhost:5000/users/google', {
+            const response = await api.post('/users/google', {
                 token: credentialResponse.credential
             });
             

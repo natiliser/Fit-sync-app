@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { useNavigate } from 'react-router-dom';
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingDown, Activity, Filter, AlertCircle, Percent, Ruler, ArrowLeft, Info } from 'lucide-react';
@@ -24,13 +24,13 @@ const Progress = () => {
             try {
                 const token = localStorage.getItem('token');
 
-                const weightRes = await axios.get('http://localhost:5000/measurements', {
+                const weightRes = await api.get('/measurements', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                const workoutsRes = await axios.get('http://localhost:5000/workouts', {
+                const workoutsRes = await api.get('/workouts', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                const userRes = await axios.get('http://localhost:5000/users/profile', {
+                const userRes = await api.get('/users/profile', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 

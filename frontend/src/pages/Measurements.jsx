@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import { ArrowLeft, Plus, Calendar, Ruler, TrendingDown, Save, Activity } from 'lucide-react';
 
 const Measurements = () => {
@@ -28,7 +28,7 @@ const Measurements = () => {
                     return;
                 }
 
-                const res = await axios.get('http://localhost:5000/measurements', {
+                const res = await api.get('/measurements', {
                     headers: { Authorization: `Bearer ${token}` }
                 })
                 if (res.data && res.data.measurements) {
@@ -88,7 +88,7 @@ const Measurements = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post('http://localhost:5000/measurements', payload, {
+            const response = await api.post('/measurements', payload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 

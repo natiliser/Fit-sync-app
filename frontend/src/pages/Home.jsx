@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from "jwt-decode";
 import { Target, Lightbulb, LucideTrendingUpDown, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../api';
 
 const Home = () => {
     const navigate = useNavigate();
@@ -33,7 +33,7 @@ const Home = () => {
                 }
 
                 // 1. Fetch user profile
-                const userResponse = await axios.get('http://localhost:5000/users/profile', {
+                const userResponse = await api.get('/users/profile', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const user = userResponse.data.user || userResponse.data;
@@ -43,13 +43,13 @@ const Home = () => {
                 }
 
                 // 2. Fetch today's consumed meals summary
-                const mealsResponse = await axios.get('http://localhost:5000/meals/today', {
+                const mealsResponse = await api.get('/meals/today', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const consumedToday = mealsResponse.data;
 
                 // 3. Fetch measurements history to get the absolute latest logged weight
-                const measurementsResponse = await axios.get('http://localhost:5000/measurements', {
+                const measurementsResponse = await api.get('/measurements', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 

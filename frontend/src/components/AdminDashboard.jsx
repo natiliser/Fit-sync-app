@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Settings, ChefHat, Apple , ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import api from '../api';
 import AdminRecipes from './AdminRecipes';
 import AdminFoodItems from './AdminFoodItems'; 
 

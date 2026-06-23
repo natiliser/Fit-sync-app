@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Apple, PlusCircle, Trash2, Search } from 'lucide-react';
+import api from '../api';
 
 const AdminFoodItems = () => {
     const [foodItems, setFoodItems] = useState([]);
@@ -14,7 +14,7 @@ const AdminFoodItems = () => {
 
     const fetchFoodItems = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/food-items');
+            const res = await api.get('/food-items');
             const sortedItems = res.data.foodItems.sort((a, b) => a.name.localeCompare(b.name));
             setFoodItems(sortedItems);
         } catch (error) { console.error("Error fetching food items:", error); }
@@ -70,7 +70,7 @@ const AdminFoodItems = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const res = await axios.post('http://localhost:5000/food-items', formData, {
+            const res = await api.post('/food-items', formData, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -90,7 +90,7 @@ const AdminFoodItems = () => {
         if (!window.confirm("Delete this item?")) return;
         try {
             const token = localStorage.getItem('token');
-            await axios.delete(`http://localhost:5000/food-items/${id}`, {
+            await api.delete(`/food-items/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setFoodItems(foodItems.filter(item => item._id !== id));

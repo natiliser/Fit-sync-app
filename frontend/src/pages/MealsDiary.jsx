@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../api';
 import { Apple, Scale, Save, ArrowLeft, Plus, Calendar, Clock, Trash2, Coffee, Sun, Moon, Utensils } from 'lucide-react';
 
 const MealsDiary = () => {
@@ -32,13 +32,13 @@ const MealsDiary = () => {
                 }
                 const headers = { Authorization: `Bearer ${token}` };
 
-                const foodsRes = await axios.get('http://localhost:5000/food-items', { headers });
+                const foodsRes = await api.get('/food-items', { headers });
                 const foodsData = foodsRes.data;
                 if (Array.isArray(foodsData)) setBasicFoods(foodsData);
                 else if (foodsData.foods) setBasicFoods(foodsData.foods);
                 else if (foodsData.foodItems) setBasicFoods(foodsData.foodItems);
 
-                const mealsRes = await axios.get('http://localhost:5000/meals', { headers });
+                const mealsRes = await api.get('/meals', { headers });
                 if (mealsRes.data && Array.isArray(mealsRes.data.meals)) {
                     setMealsLog(mealsRes.data.meals);
                 }
@@ -158,7 +158,7 @@ const MealsDiary = () => {
                 mealType: mealType
             }));
 
-            const res = await axios.post('http://localhost:5000/meals', finalPayload, {
+            const res = await api.post('/meals', finalPayload, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
